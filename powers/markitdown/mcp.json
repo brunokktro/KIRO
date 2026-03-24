@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "markitdown-mcp": {
+      "command": "uvx",
+      "args": ["markitdown-mcp"],
+      "env": {
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}
