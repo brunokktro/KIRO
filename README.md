@@ -12,6 +12,16 @@ Uma coleção de customizações para o [Kiro](https://kiro.dev) — a IDE com a
 
 > 📥 [Download do Kiro](https://kiro.dev/downloads/)
 
+> 📂 **Pasta de configuração do Kiro:** os arquivos de personalização ficam na pasta `.kiro/` dentro do seu diretório home. No macOS/Linux é `~/.kiro/`, no Windows é `%USERPROFILE%\.kiro\`. Neste README, usamos `<KIRO_HOME>` para representar esse caminho.
+
+### Pricing
+
+O Kiro tem um **nível gratuito** usando o [AWS Builder ID](https://profile.aws.amazon.com/) — sem cartão de crédito, sem compromisso. Nos **primeiros 30 dias**, você ainda ganha **500 créditos de bônus** pra testar tudo.
+
+**O que é 1 crédito?** Pense em créditos como tokens com peso variável. Prompts simples gastam menos de 1 crédito; tarefas complexas (como executar uma spec task) gastam mais. Modelos mais caros consomem mais créditos por prompt — por exemplo, Sonnet 4 custa ~1.3x mais que o modo Auto para a mesma tarefa. O menor consumo possível é 0.01 créditos.
+
+Para detalhes completos, veja a [página de pricing do Kiro](https://kiro.dev/pricing/).
+
 ---
 
 ## Steering — Personalizando seu Assistente
@@ -47,15 +57,12 @@ Este repo inclui dois templates para você começar:
 
 ### Como instalar
 
-```bash
-# Copie os templates e personalize
-cp steering/r2d2-template.md ~/.kiro/steering/meu-steering.md
-cp steering/memory-template.md ~/.kiro/steering/memory.md
+1. Copie os templates `steering/r2d2-template.md` e `steering/memory-template.md` para `<KIRO_HOME>/steering/`
+2. Renomeie e edite com suas informações
+3. O steering principal (`auto`) carrega em toda interação
+4. O memory (`manual`) você ativa com `#memory` no chat
 
-# Edite com suas informações
-# O steering principal (auto) carrega em toda interação
-# O memory (manual) você ativa com #memory no chat
-```
+> 💡 Pode fazer isso direto pelo Kiro: cole no chat algo como *"copie o template r2d2-template.md para a pasta de steering do Kiro e renomeie para meu-steering.md"* — o agente cuida do resto, independente do seu OS.
 
 ---
 
@@ -99,13 +106,10 @@ O `SKILL.md` contém um frontmatter YAML (`name`, `description`) e o corpo com i
 
 ### Como instalar
 
-```bash
-# Instalar uma skill específica
-cp -r skills/kubestronaut-coach ~/.kiro/skills/
+1. Copie a pasta da skill desejada (ex: `skills/kubestronaut-coach/`) para `<KIRO_HOME>/skills/`
+2. Para instalar todas, copie todo o conteúdo de `skills/` para `<KIRO_HOME>/skills/`
 
-# Instalar todas
-cp -r skills/* ~/.kiro/skills/
-```
+> 💡 Pode fazer isso direto pelo Kiro: cole no chat *"instalar a skill kubestronaut-coach"* ou *"instalar todas as skills deste repo"* — o agente copia os arquivos pra você.
 
 Skills são ativadas no chat do Kiro usando `#nome-da-skill` ou mencionando as keywords definidas na `description` do frontmatter.
 
@@ -146,17 +150,11 @@ power-name/
 
 ### Como instalar
 
-1. Copie a pasta do Power para `~/.kiro/powers/installed/`
-2. O `mcp.json` dentro do Power configura o servidor MCP automaticamente
-3. Substitua os placeholders (ex: `<YOUR_GITHUB_PAT>`, `<YOUR_TAVILY_API_KEY>`) pelas suas chaves
+1. Copie a pasta do Power desejado (ex: `powers/github-power/`) para `<KIRO_HOME>/powers/installed/`
+2. Abra o `mcp.json` dentro do Power e substitua os placeholders (ex: `<YOUR_GITHUB_PAT>`) pelas suas chaves
+3. Reinicie o Kiro para reconectar os MCP servers
 
-```bash
-# Instalar um power
-cp -r powers/github-power ~/.kiro/powers/installed/
-
-# Editar o mcp.json com sua chave
-# Reiniciar o Kiro para reconectar os MCP servers
-```
+> 💡 Pode fazer isso direto pelo Kiro: cole no chat *"instalar o power github-power"* — o agente copia os arquivos e te orienta sobre as chaves necessárias.
 
 > 💡 Explore mais Powers no [Kiro Powers Hub](https://kiro.dev/powers/)
 
@@ -205,10 +203,12 @@ KIRO/
 
 Use a skill `skill-factory` incluída neste repo para criar novas skills:
 
-1. Instale: `cp -r skills/skill-factory ~/.kiro/skills/`
+1. Copie a pasta `skills/skill-factory/` para `<KIRO_HOME>/skills/`
 2. No chat do Kiro, diga: "criar skill para [descreva o que quer]"
 3. O skill-factory guia você pela estrutura, frontmatter e instruções
-4. Resultado: uma skill pronta em `~/.kiro/skills/`
+4. Resultado: uma skill pronta em `<KIRO_HOME>/skills/`
+
+> 💡 Pode pedir direto no chat: *"instalar a skill skill-factory e criar uma skill para [seu caso de uso]"*
 
 Ou crie manualmente seguindo a [especificação Agent Skills](https://agentskills.io/home).
 
