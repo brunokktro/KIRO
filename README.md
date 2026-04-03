@@ -32,7 +32,7 @@ Steering files são documentos markdown em `.kiro/steering/` que configuram como
 
 | Tipo | Quando carrega | Uso |
 |------|---------------|-----|
-| `auto` | Toda interação | Regras gerais, estilo de comunicação, protocolos |
+| `always` | Toda interação | Regras gerais, estilo de comunicação, protocolos |
 | `manual` | Quando você chama `#nome` no chat | Contexto sob demanda (memória, referências) |
 | `fileMatch` | Quando um arquivo específico é aberto | Regras por tipo de arquivo |
 
@@ -40,7 +40,7 @@ Steering files são documentos markdown em `.kiro/steering/` que configuram como
 
 Este repo inclui dois templates para você começar:
 
-**[r2d2-template.md](steering/r2d2-template.md)** - Template do steering principal (`auto`)
+**[r2d2-template.md](steering/r2d2-template.md)** - Template do steering principal (`always`)
 
 > 🤖 Por que "R2D2"? Dar um nome ao steering torna o conceito tangível: é o *seu* assistente. Alfred, Jarvis, Minions... aqui é R2D2 - o droid de Star Wars que combina processamento, inteligência, conhecimento e personalidade. Resolve problemas complexos, antecipa necessidades e nunca precisa de muita explicação. Escolha o que fizer sentido pra você.
 - Seção "Sobre Você" - perfil, cargo, domínios
@@ -59,7 +59,7 @@ Este repo inclui dois templates para você começar:
 
 1. Copie os templates `steering/r2d2-template.md` e `steering/memory-template.md` para `<KIRO_HOME>/steering/`
 2. Renomeie e edite com suas informações
-3. O steering principal (`auto`) carrega em toda interação
+3. O steering principal (`always`) carrega em toda interação
 4. O memory (`manual`) você ativa com `#memory` no chat
 
 > 💡 Pode fazer isso direto pelo Kiro: cole no chat algo como *"copie o template r2d2-template.md para a pasta de steering do Kiro e renomeie para meu-steering.md"* - o agente cuida do resto, independente do seu OS.
