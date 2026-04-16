@@ -4,7 +4,11 @@ Uma coleção de customizações para o [Kiro](https://kiro.dev) - a IDE com ass
 
 ## O que é o Kiro?
 
-[Kiro](https://kiro.dev) é uma IDE com assistente de IA que ajuda desenvolvedores a escrever, testar e manter código. O Kiro oferece diversas formas de personalização e extensão - para conhecer todas, veja a [documentação oficial](https://kiro.dev/docs/). Neste repositório, focamos em três delas:
+[Kiro](https://kiro.dev) é uma IDE com assistente de IA que vai muito além de escrever código. Com Skills, Powers e Steering, o Kiro se transforma em um assistente pessoal completo - capaz de preparar você pra certificações, revisar gramática em outros idiomas, curar bookmarks, gerar documentação técnica, gerenciar pipelines de vendas e muito mais. Desenvolvedores são o público principal, mas as possibilidades de automação e produtividade se estendem a qualquer profissional.
+
+Para conhecer todas as formas de personalização e extensão, veja a [documentação oficial](https://kiro.dev/docs/). Neste repositório, focamos em três delas:
+
+> 💡 Quer ir além da IDE? O [Kiro Assistant](https://github.com/aws-samples/sample-kiro-assistant) é um app desktop Electron que usa o `kiro-cli` como motor de agente para tarefas do dia a dia - criar áudio, vídeo, apresentações, modelagem em Excel, pesquisa profunda e mais. Com 500+ tools via Composio e skills carregadas dinamicamente, ele mostra que o Kiro pode ser útil pra qualquer pessoa, não só desenvolvedores.
 
 - [**Steering**](#steering--personalizando-seu-assistente) - documentos markdown que personalizam o comportamento do assistente
 - [**Skills**](#skills--capacidades-especializadas) - instruções especializadas que dão ao agente capacidades específicas
