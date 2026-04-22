@@ -37,6 +37,7 @@ Steering files são documentos markdown em `.kiro/steering/` que configuram como
 | Tipo | Quando carrega | Uso |
 |------|---------------|-----|
 | `always` | Toda interação | Regras gerais, estilo de comunicação, protocolos |
+| `auto` | Quando o Kiro detecta relevância pelo conteúdo da conversa | Contexto útil mas não obrigatório (ADRs, convenções de domínio) |
 | `manual` | Quando você chama `#nome` no chat | Contexto sob demanda (memória, referências) |
 | `fileMatch` | Quando um arquivo específico é aberto | Regras por tipo de arquivo |
 
