@@ -19,16 +19,19 @@ The source tool (Terraform, CFN, Pulumi, Click-Ops) is irrelevant - ACK reads th
 ## Prerequisites
 
 - ACK controller for the target service installed (via EKS Capabilities or Helm)
-- `ResourceAdoption` Feature Gate enabled
+- `ResourceAdoption` Feature Gate enabled (see note below)
 - IRSA configured with permissions for the target service
+
+> **EKS Capabilities:** The `ResourceAdoption` feature gate is **enabled by default** when installing ACK controllers via EKS Capabilities. No additional configuration needed.
+> For self-managed Helm installs, the feature gate is disabled by default and must be explicitly enabled.
 
 ### Verify Feature Gate is active
 
 ```bash
-# Via EKS Capabilities - enabled by default
+# Check current feature gate status
 kubectl get deployment -n ack-system -o yaml | grep -A5 "featureGates"
 
-# Via Helm - enable if needed
+# Helm install - enable if not using EKS Capabilities
 helm upgrade ack-$SERVICE-controller \
   oci://public.ecr.aws/aws-controllers-k8s/$SERVICE-chart \
   --namespace ack-system \
