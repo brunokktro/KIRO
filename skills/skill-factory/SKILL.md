@@ -72,15 +72,17 @@ Keep `SKILL.md` under 500 lines. Move detailed reference material to separate fi
 1. Ask the user what the skill should do and when it should activate
 2. Choose a name (lowercase, hyphens, max 64 chars)
 3. Write a clear `description` with activation keywords
-4. Create `SKILL.md` with frontmatter and instructions
-5. If the skill needs detailed reference docs, create `references/` files
-6. If the skill needs scripts, create `scripts/` files
-7. Validate the structure matches the spec
+4. **Write all skill content in English (en-US)** - skills are LLM instructions; English reduces token usage and avoids ambiguity in technical terms
+5. Create `SKILL.md` with frontmatter and instructions
+6. If the skill needs detailed reference docs, create `references/` files
+7. If the skill needs scripts, create `scripts/` files
+8. Validate the structure matches the spec
 
 ## Quality checklist
 - [ ] `name` matches directory name
 - [ ] `name` follows naming rules (lowercase, hyphens, no leading/trailing hyphens)
 - [ ] `description` is clear and includes activation keywords
+- [ ] **All content written in English (en-US)** - no PT-BR or other languages in skill body
 - [ ] `SKILL.md` is under 500 lines
 - [ ] References are one level deep from `SKILL.md`
 - [ ] No deeply nested reference chains
