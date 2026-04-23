@@ -109,6 +109,7 @@ O `SKILL.md` contém um frontmatter YAML (`name`, `description`) e o corpo com i
 | [tech-docs](skills/tech-docs/) | Gera documentação técnica estruturada a partir de código de infraestrutura (Terraform, K8s, ArgoCD). | `#tech-docs` ou "documentar projeto" |
 | [skill-factory](skills/skill-factory/) | Guia a criação de novas skills seguindo a especificação Agent Skills. | `#skill-factory` ou "criar skill" |
 | [ack-resource-adoption](skills/ack-resource-adoption/) | Adota recursos AWS existentes no ACK via Feature Gate `ResourceAdoption` e política `adopt-or-create`. Cobre discovery, manifests, deletion policy e validação. | `#ack-resource-adoption` ou "ACK adoption" |
+| [daily-planner](skills/daily-planner/) | Assistente de planejamento diário e semanal com matriz Eisenhower, time boxing, detecção de conflitos e triage de tarefas. Funciona com qualquer calendar + task manager via MCP. | `#daily-planner` ou "plan my day" |
 
 ### Como instalar
 
@@ -150,9 +151,10 @@ power-name/
 | [github-power](powers/github-power/) | Integração completa com GitHub - repos, issues, PRs, code search | `@modelcontextprotocol/server-github` |
 | [eks-power](powers/eks-power/) | Gerenciamento de clusters AWS EKS - clusters, node groups, add-ons, pod identity | `awslabs.eks-mcp-server` |
 | [kubernetes-power](powers/kubernetes-power/) | Operações Kubernetes - kubectl, Helm, pods, troubleshooting | `kubernetes MCP` |
-| [markitdown](powers/markitdown/) | Converte arquivos e URLs para Markdown (PDF, DOCX, PPTX, imagens, áudio) | `markitdown-mcp` |
-| [aws-diagram](powers/aws-diagram/) | Gera diagramas de arquitetura AWS usando Python diagrams DSL | `awslabs/diagram-mcp-server` |
-| [research-assistant](powers/research-assistant/) | Pesquisa profunda com loops iterativos plan-search-evaluate, verificação de fontes e prevenção de alucinações | `tavily` + `fetch` + `context7` + `deepwiki` |
+| [power-markitdown](powers/power-markitdown/) | Converte arquivos e URLs para Markdown (PDF, DOCX, PPTX, imagens, áudio) | `markitdown-mcp` |
+| [power-aws-diagram](powers/power-aws-diagram/) | Gera diagramas de arquitetura AWS usando Python diagrams DSL | `awslabs/diagram-mcp-server` |
+| [power-research-assistant](powers/power-research-assistant/) | Pesquisa profunda com loops iterativos plan-search-evaluate, verificação de fontes e prevenção de alucinações | `tavily` + `fetch` + `context7` + `deepwiki` |
+| [power-ticktick](powers/power-ticktick/) | Gerenciamento de tarefas via TickTick MCP - Eisenhower Matrix, CRUD de tasks, reminders, gotchas do campo content | ticktick MCP |
 
 ### Como instalar
 
@@ -171,9 +173,10 @@ power-name/
 | github-power | GitHub Personal Access Token |
 | eks-power | AWS credentials configuradas (`aws configure`) |
 | kubernetes-power | `kubeconfig` configurado |
-| markitdown | Python + `uvx` instalado |
-| aws-diagram | Python + `uvx` instalado |
-| research-assistant | Tavily API key (gratuita em [tavily.com](https://tavily.com)) |
+| power-markitdown | Python + `uvx` instalado |
+| power-aws-diagram | Python + `uvx` instalado |
+| power-research-assistant | Tavily API key (gratuita em [tavily.com](https://tavily.com)) |
+| power-ticktick | Conta TickTick (OAuth via browser no primeiro uso) |
 
 ---
 
@@ -194,14 +197,16 @@ KIRO/
 │   ├── bookmark-curator/         # Curadoria de bookmarks
 │   ├── tech-docs/                # Gerador de documentação técnica
 │   ├── skill-factory/            # Meta-skill para criar novas skills
-│   └── ack-resource-adoption/    # Adoção de recursos AWS existentes no ACK
+│   ├── ack-resource-adoption/    # Adoção de recursos AWS existentes no ACK
+│   └── daily-planner/            # Planejamento diário/semanal com Eisenhower + time boxing
 └── powers/
     ├── github-power/             # GitHub integration
     ├── eks-power/                # AWS EKS management
     ├── kubernetes-power/         # Kubernetes operations
-    ├── markitdown/               # File-to-Markdown converter
-    ├── aws-diagram/              # AWS architecture diagrams
-    └── research-assistant/       # Deep research with source verification
+    ├── power-markitdown/         # File-to-Markdown converter
+    ├── power-aws-diagram/        # AWS architecture diagrams
+    ├── power-research-assistant/ # Deep research with source verification
+    └── power-ticktick/           # TickTick task management (Eisenhower Matrix)
 ```
 
 ---
