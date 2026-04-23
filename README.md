@@ -108,6 +108,7 @@ O `SKILL.md` contém um frontmatter YAML (`name`, `description`) e o corpo com i
 | [bookmark-curator](skills/bookmark-curator/) | Processa exports de bookmarks do Firefox, categoriza, resume e gera um feed visual HTML. | `#bookmark-curator` ou "organizar bookmarks" |
 | [tech-docs](skills/tech-docs/) | Gera documentação técnica estruturada a partir de código de infraestrutura (Terraform, K8s, ArgoCD). | `#tech-docs` ou "documentar projeto" |
 | [skill-factory](skills/skill-factory/) | Guia a criação de novas skills seguindo a especificação Agent Skills. | `#skill-factory` ou "criar skill" |
+| [ack-resource-adoption](skills/ack-resource-adoption/) | Adota recursos AWS existentes no ACK via Feature Gate `ResourceAdoption` e política `adopt-or-create`. Cobre discovery, manifests, deletion policy e validação. | `#ack-resource-adoption` ou "ACK adoption" |
 
 ### Como instalar
 
@@ -192,7 +193,8 @@ KIRO/
 │   ├── training-mentor/          # Portais de estudo HTML
 │   ├── bookmark-curator/         # Curadoria de bookmarks
 │   ├── tech-docs/                # Gerador de documentação técnica
-│   └── skill-factory/            # Meta-skill para criar novas skills
+│   ├── skill-factory/            # Meta-skill para criar novas skills
+│   └── ack-resource-adoption/    # Adoção de recursos AWS existentes no ACK
 └── powers/
     ├── github-power/             # GitHub integration
     ├── eks-power/                # AWS EKS management
