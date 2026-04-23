@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    "tavily-remote": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.tavily.com/mcp/?tavilyApiKey=<YOUR_TAVILY_API_KEY>"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "aws-knowledge-mcp-server": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://knowledge-mcp.global.api.aws"]
+    },
+    "deepwiki": {
+      "url": "https://mcp.deepwiki.com/mcp"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    }
+  }
+}
