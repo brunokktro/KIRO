@@ -187,6 +187,8 @@ power-name/
 ```
 KIRO/
 ├── README.md
+├── agents/
+│   └── bookmark-curator/            # Agent autônomo para curadoria de bookmarks
 ├── steering/
 │   ├── r2d2-template.md          # Template do steering principal
 │   └── memory-template.md        # Template de memória acumulativa
@@ -295,6 +297,30 @@ A pasta `examples/` contém portais de treinamento sanitizados gerados pelo trai
 | [learning-curator](skills/learning-curator/) | Triagem e priorização de material de estudo | SKILL.md + template de dashboard |
 | [training-mentor](skills/training-mentor/) | Gerar portais HTML de treinamento (teoria + labs) | SKILL.md + 3 templates HTML |
 | [challenge-mentor](skills/challenge-mentor/) | Desafios de troubleshooting sem guia | SKILL.md + catálogo de desafios |
+
+---
+
+## 🤖 Agents
+
+Agents são como skills, mas projetados para execução autônoma - sem interação humana durante a execução. Podem ser agendados via cron, launchd, ou Task Scheduler para rodar periodicamente.
+
+### Diferença entre Skill e Agent
+
+| Aspecto | Skill | Agent |
+|---------|-------|-------|
+| Interação | Interativa (chat) | Autônoma (batch) |
+| Ativação | `#nome` no chat | `kiro-cli agent run nome` |
+| Duração | Enquanto o chat durar | Executa e termina |
+| Agendamento | Não | Sim (cron, launchd, Task Scheduler) |
+| Erro handling | Pergunta ao usuário | Classifica e decide sozinho |
+
+### Agents neste repositório
+
+| Agent | Descrição | Automação |
+|-------|-----------|----------|
+| [bookmark-curator](agents/bookmark-curator/) | Processa exports de bookmarks do Firefox em dados estruturados, markdown e feed visual HTML. Alimenta o pipeline de aprendizado. | [Guia de automação](agents/bookmark-curator/AUTOMATION.md) |
+
+> 💡 O bookmark-curator também existe como [skill](skills/bookmark-curator/) para uso interativo no chat. O agent é a versão autônoma que roda em schedule.
 
 ---
 
