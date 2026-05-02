@@ -248,7 +248,20 @@ O Learning Ecosystem resolve isso com 3 skills e 1 agent que funcionam como um p
 
 ### O ciclo de aprendizado
 
-**salvar conteúdo → curar & priorizar → gerar material estruturado → prática guiada → desafios sem guia → voltar a curar mais**
+```mermaid
+flowchart LR
+    A["📎 Salvar conteúdo"] --> B["🔍 Curar &\npriorizar"]
+    B --> C["📖 Gerar material\nestruturado"]
+    C --> D["🧪 Prática\nguiada"]
+    D --> E["🎯 Desafios\nsem guia"]
+    E -->|"🔄 novo tópico"| B
+
+    style A fill:#E3F2FD,stroke:#1565C0,color:#1a1a2e
+    style B fill:#F3E5F5,stroke:#7B1FA2,color:#1a1a2e
+    style C fill:#E8F5E9,stroke:#2E7D32,color:#1a1a2e
+    style D fill:#FFF3E0,stroke:#E65100,color:#1a1a2e
+    style E fill:#FCE4EC,stroke:#C62828,color:#1a1a2e
+```
 
 ![Learning Ecosystem](docs/learning-ecosystem.png)
 
