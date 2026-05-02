@@ -80,7 +80,7 @@ crontab -e
 
 ## Firefox Auto-Export
 
-To automate the bookmark export step, use the [Export Bookmarks](https://addons.mozilla.org/en-US/firefox/addon/export-bookmarks/) Firefox extension, which can save bookmarks JSON to a fixed path on a schedule.
+To automate the bookmark export step, use the [Bookmarks Export Tool](https://addons.mozilla.org/en-US/firefox/addon/bookmarks-export-tool/) Firefox extension, which can save bookmarks JSON to a fixed path on a schedule.
 
 ## Monitoring
 
