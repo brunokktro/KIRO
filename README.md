@@ -236,31 +236,29 @@ KIRO/
 
 ## 🧠 Learning Ecosystem Skills
 
-Um conjunto conectado de 4 Kiro skills que criam um pipeline completo de aprendizado autodirigido:
+Um conjunto conectado de 3 Kiro skills + 1 agent que criam um pipeline completo de aprendizado autodirigido:
 
-**bookmark-curator** → **learning-curator** → **training-mentor** → **challenge-mentor**
+**bookmark-curator** (skill + agent) → **learning-curator** (skill) → **training-mentor** (skill) → **challenge-mentor** (skill)
 
 ### O problema
 
 Aprendizado técnico é naturalmente disperso: bookmarks acumulam no browser, abas abertas viram dezenas sem critério, material de estudo não tem estrutura, e não existe forma de validar se você realmente aprendeu algo. Cada ferramenta resolve um pedaço - mas nenhuma conecta o ciclo completo de **capturar → priorizar → estudar → praticar → validar**.
 
-O Learning Ecosystem resolve isso com 4 skills que funcionam como um pipeline integrado. Cada skill alimenta a próxima, criando um ciclo contínuo de aprendizado autodirigido.
+O Learning Ecosystem resolve isso com 3 skills e 1 agent que funcionam como um pipeline integrado. Cada componente alimenta o próximo, criando um ciclo contínuo de aprendizado autodirigido.
 
 ### O ciclo de aprendizado
 
-```text
-Salvar conteúdo → Curar & priorizar → Gerar material estruturado → Prática guiada → Desafios sem guia → Voltar a curar mais
-```
+**capturar → priorizar → estudar → praticar → validar**
 
 ![Learning Ecosystem](docs/learning-ecosystem.png)
 
 > 📊 Veja também o [diagrama interativo](examples/learning-ecosystem.html) com o fluxo completo entre as skills.
 
-### As 4 skills do ciclo
+### Os componentes do ciclo
 
-**1. [bookmark-curator](skills/bookmark-curator/) - Ponto de entrada**
+**1. [bookmark-curator](skills/bookmark-curator/) - Ponto de entrada (skill + [agent](agents/bookmark-curator/))**
 
-Processa exports de bookmarks do browser (Firefox JSON) e transforma um dump caótico de favoritos em dados estruturados e categorizados. Gera um feed visual HTML e alimenta o `bookmarks-data.json` - a base de links compartilhada que as outras skills consomem. É o ponto de entrada para todo conteúdo "salvo pra depois".
+Processa exports de bookmarks do browser (Firefox JSON) e transforma um dump caótico de favoritos em dados estruturados e categorizados. Gera um feed visual HTML e alimenta o `bookmarks-data.json` - a base de links compartilhada que as outras skills consomem. Funciona como skill interativa no chat ou como [agent autônomo](agents/bookmark-curator/AUTOMATION.md) rodando em schedule (launchd, cron, Task Scheduler).
 
 **2. [learning-curator](skills/learning-curator/) - Triagem e priorização**
 
@@ -276,12 +274,12 @@ Após completar os labs guiados, gera desafios de troubleshooting sem guia com h
 
 ### Como as skills se conectam
 
-| Etapa | Skill | Entrada | Saída |
-|-------|-------|---------|-------|
-| Captura | bookmark-curator | Export JSON do Firefox | `bookmarks-data.json` + feed HTML |
-| Triagem | learning-curator | Abas abertas + calendar | Fila priorizada + `bookmarks-data.json` |
-| Estudo | training-mentor | Lista de tópicos + bookmarks-data | Portais HTML (teoria + labs) |
-| Validação | challenge-mentor | Tópico dos labs completados | Desafios com hints progressivos |
+| Etapa | Componente | Tipo | Entrada | Saída |
+|-------|-----------|------|---------|-------|
+| Captura | bookmark-curator | skill + agent | Export JSON do Firefox | `bookmarks-data.json` + feed HTML |
+| Triagem | learning-curator | skill | Abas abertas + calendar | Fila priorizada + `bookmarks-data.json` |
+| Estudo | training-mentor | skill | Lista de tópicos + bookmarks-data | Portais HTML (teoria + labs) |
+| Validação | challenge-mentor | skill | Tópico dos labs completados | Desafios com hints progressivos |
 
 O poder está na integração: bookmark-curator e learning-curator alimentam a mesma base de links (`bookmarks-data.json`). O training-mentor consome essa base como referências prioritárias (badge ⭐). Os portais de labs linkam para o challenge-mentor. E o learning-curator fecha o ciclo marcando portais como concluídos.
 
