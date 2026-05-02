@@ -105,6 +105,8 @@ O `SKILL.md` contém um frontmatter YAML (`name`, `description`) e o corpo com i
 | [kubestronaut-coach](skills/kubestronaut-coach/) | Coach para certificações Kubernetes (CKA, CKAD, CKS, KCNA, KCSA). Foco em velocidade e atalhos para provas. | `#kubestronaut-coach` ou "desafio CKA" |
 | [tech-mentor](skills/tech-mentor/) | Mentor técnico para labs hands-on de Kubernetes/EKS. Gera cenários progressivos de troubleshooting. | `#tech-mentor` ou "treino k8s" |
 | [training-mentor](skills/training-mentor/) | Gera portais HTML de estudo a partir de uma lista de tópicos. Inclui referências oficiais e vídeos. | `#training-mentor` ou "training content" |
+| [challenge-mentor](skills/challenge-mentor/) | Mentor técnico para desafios hands-on de Kubernetes/EKS. Gera cenários progressivos de troubleshooting com hints graduais. | `#challenge-mentor` ou "desafio k8s" |
+| [learning-curator](skills/learning-curator/) | Gerenciador de fila de estudo pessoal. Captura links/artigos/repos, prioriza por entregas e gera dashboards. | `#learning-curator` ou "learning queue" |
 | [bookmark-curator](skills/bookmark-curator/) | Processa exports de bookmarks do Firefox, categoriza, resume e gera um feed visual HTML. | `#bookmark-curator` ou "organizar bookmarks" |
 | [tech-docs](skills/tech-docs/) | Gera documentação técnica estruturada a partir de código de infraestrutura (Terraform, K8s, ArgoCD). | `#tech-docs` ou "documentar projeto" |
 | [skill-factory](skills/skill-factory/) | Guia a criação de novas skills seguindo a especificação Agent Skills. | `#skill-factory` ou "criar skill" |
@@ -193,7 +195,9 @@ KIRO/
 │   ├── spanish-mentor/           # Mentor de espanhol
 │   ├── kubestronaut-coach/       # Coach de certificações K8s
 │   ├── tech-mentor/              # Labs hands-on K8s
-│   ├── training-mentor/          # Portais de estudo HTML
+│   ├── training-mentor/          # Portais de estudo HTML (3 templates aprovados)
+│   ├── challenge-mentor/          # Desafios hands-on K8s com hints progressivos
+│   ├── learning-curator/          # Fila de estudo pessoal com priorização
 │   ├── bookmark-curator/         # Curadoria de bookmarks
 │   ├── tech-docs/                # Gerador de documentação técnica
 │   ├── skill-factory/            # Meta-skill para criar novas skills
@@ -207,7 +211,90 @@ KIRO/
     ├── power-aws-diagram/        # AWS architecture diagrams
     ├── power-research-assistant/ # Deep research with source verification
     └── power-ticktick/           # TickTick task management (Eisenhower Matrix)
+├── examples/
+│   ├── nginx-migration/          # Portal de migração NGINX Ingress → AWS LBC
+│   ├── istio/                    # Portal de Istio Service Mesh no EKS
+│   └── learning-ecosystem.html   # Diagrama interativo do ecossistema de skills
+└── docs/
+    └── learning-ecosystem.png    # Diagrama estático do ecossistema
 ```
+
+---
+
+## 🧠 Learning Ecosystem Skills
+
+Um conjunto conectado de 4 Kiro skills que criam um pipeline completo de aprendizado autodirigido:
+
+**bookmark-curator** → **learning-curator** → **training-mentor** → **challenge-mentor**
+
+### O problema
+
+Aprendizado técnico é naturalmente disperso: bookmarks acumulam no browser, abas abertas viram dezenas sem critério, material de estudo não tem estrutura, e não existe forma de validar se você realmente aprendeu algo. Cada ferramenta resolve um pedaço - mas nenhuma conecta o ciclo completo de **capturar → priorizar → estudar → praticar → validar**.
+
+O Learning Ecosystem resolve isso com 4 skills que funcionam como um pipeline integrado. Cada skill alimenta a próxima, criando um ciclo contínuo de aprendizado autodirigido.
+
+### O ciclo de aprendizado
+
+```text
+Salvar conteúdo → Curar & priorizar → Gerar material estruturado → Prática guiada → Desafios sem guia → Voltar a curar mais
+```
+
+![Learning Ecosystem](docs/learning-ecosystem.png)
+
+> 📊 Veja também o [diagrama interativo](examples/learning-ecosystem.html) com o fluxo completo entre as skills.
+
+### As 4 skills do ciclo
+
+**1. [bookmark-curator](skills/bookmark-curator/) - Ponto de entrada**
+
+Processa exports de bookmarks do browser (Firefox JSON) e transforma um dump caótico de favoritos em dados estruturados e categorizados. Gera um feed visual HTML e alimenta o `bookmarks-data.json` - a base de links compartilhada que as outras skills consomem. É o ponto de entrada para todo conteúdo "salvo pra depois".
+
+**2. [learning-curator](skills/learning-curator/) - Triagem e priorização**
+
+Captura links de abas abertas do browser, cruza com entregas de trabalho próximas (via calendar) e prioriza o que estudar primeiro. Gera um dashboard de estudo com priorização estilo Eisenhower - o que é urgente e importante sobe pro topo. Links triados também alimentam o `bookmarks-data.json`, garantindo uma base unificada.
+
+**3. [training-mentor](skills/training-mentor/) - Material estruturado**
+
+Recebe uma lista de tópicos e gera portais HTML de treinamento autocontidos - teoria com referências curadas de docs oficiais, labs hands-on com provisionamento IaC (Terraform/eksdemo), e vídeos de fontes confiáveis. Consome links do `bookmarks-data.json` como referências prioritárias. Todo portal de labs começa com um **Lab 0** que provisiona o ambiente completo e termina com uma seção **Challenge Mode** que conecta ao próximo passo.
+
+**4. [challenge-mentor](skills/challenge-mentor/) - Validação de conhecimento**
+
+Após completar os labs guiados, gera desafios de troubleshooting sem guia com hints progressivos (3 níveis). Apresenta variações de cenários que o aprendiz não viu nos labs - com causas-raiz diferentes e sem passo-a-passo. Testa entendimento real, não memorização. Após consumir os desafios, o ciclo volta ao learning-curator para marcar o tópico como concluído e curar o próximo.
+
+### Como as skills se conectam
+
+| Etapa | Skill | Entrada | Saída |
+|-------|-------|---------|-------|
+| Captura | bookmark-curator | Export JSON do Firefox | `bookmarks-data.json` + feed HTML |
+| Triagem | learning-curator | Abas abertas + calendar | Fila priorizada + `bookmarks-data.json` |
+| Estudo | training-mentor | Lista de tópicos + bookmarks-data | Portais HTML (teoria + labs) |
+| Validação | challenge-mentor | Tópico dos labs completados | Desafios com hints progressivos |
+
+O poder está na integração: bookmark-curator e learning-curator alimentam a mesma base de links (`bookmarks-data.json`). O training-mentor consome essa base como referências prioritárias (badge ⭐). Os portais de labs linkam para o challenge-mentor. E o learning-curator fecha o ciclo marcando portais como concluídos.
+
+### Decisões de design
+
+- **Lab 0 IaC Pattern** - Todo portal de labs provisiona o ambiente completo via Terraform. Um `terraform apply` do zero ao pronto. Sem pré-requisitos além de AWS CLI, Terraform e kubectl.
+- **Completude autoguiada** - Todo lab é executável do início ao fim sem conhecimento externo. Nada de "assuma que X existe" - ou o Lab 0 provisiona, ou o lab tem um setup step.
+- **Challenge Mode** - Portais de labs terminam com uma seção que linka para o challenge-mentor, criando a progressão: teoria → prática guiada → desafio sem guia.
+- **Templates HTML aprovados** - Design visual consistente em todos os portais (dark/light mode, responsivo, autocontido). Três templates: theory portal, labs portal, hub page.
+
+### Portais de exemplo
+
+A pasta `examples/` contém portais de treinamento sanitizados gerados pelo training-mentor:
+
+- `examples/nginx-migration/` - Aposentadoria do NGINX Ingress Controller e migração para AWS LBC / Gateway API
+- `examples/istio/` - Istio Service Mesh (Sidecar + Ambient Mode) no EKS
+- `examples/learning-ecosystem.html` - Diagrama Mermaid interativo da integração entre skills
+
+### Skills do Ecossistema
+
+| Skill | Propósito | Arquivos-chave |
+|-------|----------|----------------|
+| [bookmark-curator](skills/bookmark-curator/) | Processar bookmarks do browser em dados estruturados | SKILL.md + feed HTML template |
+| [learning-curator](skills/learning-curator/) | Triagem e priorização de material de estudo | SKILL.md + template de dashboard |
+| [training-mentor](skills/training-mentor/) | Gerar portais HTML de treinamento (teoria + labs) | SKILL.md + 3 templates HTML |
+| [challenge-mentor](skills/challenge-mentor/) | Desafios de troubleshooting sem guia | SKILL.md + catálogo de desafios |
 
 ---
 
