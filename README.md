@@ -4,16 +4,16 @@ Uma coleção de customizações para o [Kiro](https://kiro.dev) - a IDE com ass
 
 ## Sumário
 
-- [O que é o Kiro?](#o-que-é-o-kiro)
-- [Steering - Personalizando seu Assistente](#steering---personalizando-seu-assistente)
-- [Skills - Capacidades Especializadas](#skills---capacidades-especializadas)
-- [Powers - Integrações MCP](#powers---integrações-mcp)
-- [Estrutura do Repositório](#estrutura-do-repositório)
+- [💡 O que é o Kiro?](#o-que-é-o-kiro)
+- [🎯 Steering - Personalizando seu Assistente](#steering---personalizando-seu-assistente)
+- [🧩 Skills - Capacidades Especializadas](#skills---capacidades-especializadas)
+- [⚡ Powers - Integrações MCP](#powers---integrações-mcp)
+- [📂 Estrutura do Repositório](#estrutura-do-repositório)
 - [🧠 Learning Ecosystem Skills](#-learning-ecosystem-skills)
 - [🤖 Agents](#-agents)
-- [Como Criar sua Própria Skill](#como-criar-sua-própria-skill)
-- [Contribuindo](#contribuindo)
-- [Licença](#licença)
+- [🛠️ Como Criar sua Própria Skill](#como-criar-sua-própria-skill)
+- [🤝 Contribuindo](#contribuindo)
+- [📄 Licença](#licença)
 
 ## O que é o Kiro?
 
