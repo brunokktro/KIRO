@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Istio Core (Sidecar Mode) - Training Portal</title>
+<style>
+:root{--bg:#fff;--text:#1a1a2e;--card-bg:#f8f9fa;--border:#e0e0e0;--accent:#0073BB;--header-bg:#232F3E;--code-bg:#f4f4f4;--key-bg:#e8f4fd;--key-border:#b3d9f2;--shadow:rgba(0,0,0,.08)}
+[data-theme="dark"]{--bg:#1a1a2e;--text:#e0e0e0;--card-bg:#16213e;--border:#2a2a4a;--accent:#4fc3f7;--header-bg:#0f3460;--code-bg:#16213e;--key-bg:#1a2744;--key-border:#2a4a6a;--shadow:rgba(0,0,0,.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:960px;margin:0 auto;padding:0 24px}
+header{background:var(--header-bg);color:#fff;padding:48px 0 36px}
+header h1{font-size:2rem;margin-bottom:8px}
+header p{opacity:.85;font-size:1.05rem}
+.meta{margin-top:12px;font-size:.85rem;opacity:.65}
+.badge{background:var(--accent);color:#fff;padding:2px 10px;border-radius:12px;font-size:.75rem;vertical-align:middle}
+.theme-toggle{position:fixed;top:1rem;right:1rem;z-index:100;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow)}
+.toc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px 32px;margin:32px 0}
+.toc h2{font-size:1.2rem;margin-bottom:12px}
+.toc ol{padding-left:20px}.toc li{margin:6px 0}
+.toc-group{font-size:.8rem;font-weight:700;text-transform:uppercase;color:var(--accent);margin-top:16px;margin-bottom:4px;letter-spacing:.5px}
+.module{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:32px;margin:24px 0;box-shadow:0 2px 8px var(--shadow)}
+.module h2{font-size:1.5rem;margin-bottom:16px;color:var(--accent);border-bottom:2px solid var(--border);padding-bottom:8px}
+.module h3{margin:20px 0 8px;font-size:1.15rem}
+.module p{margin:8px 0}
+.key-concepts{background:var(--key-bg);border:1px solid var(--key-border);border-radius:8px;padding:16px 20px;margin:16px 0}
+.key-concepts h4{margin-bottom:8px}
+.key-concepts ul{padding-left:20px}
+.key-concepts li{margin:4px 0}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;font-size:.88rem;line-height:1.5;margin:12px 0}
+code{font-family:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace}
+.hands-on{border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--key-bg);border-radius:0 8px 8px 0}
+.hands-on h4{margin-bottom:8px}
+.resources-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}
+@media(max-width:700px){.resources-grid{grid-template-columns:1fr}}
+.resources-grid h4{margin-bottom:10px;font-size:.95rem}
+.resources-grid ul{list-style:none;padding:0}
+.resources-grid li{margin:8px 0;font-size:.9rem}
+.link-type{display:inline-block;background:var(--border);color:var(--text);padding:1px 6px;border-radius:3px;font-size:.7rem;font-weight:700;margin-right:6px;text-transform:uppercase}
+.badge-important{background:#FFF3CD;color:#856404;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-notes{background:#D4EDDA;color:#155724;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-new{background:#d4edda;color:#155724;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-ai{background:#f8d7da;color:#721c24;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.warning-box{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px 20px;margin:16px 0;color:#856404}
+[data-theme="dark"] .warning-box{background:#3b2e00;border-color:#ffc107;color:#FEC448}
+[data-theme="dark"] .badge-important{background:#3b2e00;color:#FEC448}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.9rem}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--key-bg);font-weight:600}
+footer{text-align:center;padding:32px;font-size:.85rem;opacity:.6;margin-top:32px}
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌓</button>
+<header>
+<div class="container">
+<h1>🔷 Istio Core - Sidecar Mode <span class="badge">2026</span></h1>
+<p>Fundamentos de Service Mesh, arquitetura Istio, Traffic Management, Resiliency, Security e Observability</p>
+<div class="meta">Generated May 2, 2026 · Based on istio.io, Envoy docs, AWS blogs, and field notes · 6 modules</div>
+</div>
+</header>
+<div class="container">
+<nav class="toc">
+<h2>📑 Table of Contents</h2>
+<div class="toc-group">Foundations</div>
+<ol>
+<li><a href="#m1">Service Mesh Concepts</a></li>
+<li><a href="#m2">Istio Architecture</a></li>
+</ol>
+<div class="toc-group">Traffic & Resiliency</div>
+<ol start="3">
+<li><a href="#m3">Traffic Management</a></li>
+<li><a href="#m4">Network Resiliency</a></li>
+</ol>
+<div class="toc-group">Security & Observability</div>
+<ol start="5">
+<li><a href="#m5">Security & Zero Trust</a></li>
+<li><a href="#m6">Observability</a></li>
+</ol>
+</nav>
+
+<section class="module" id="m1">
+<h2>1. Service Mesh Concepts</h2>
+<p>A <strong>service mesh</strong> is a dedicated infrastructure layer that handles service-to-service communication within a microservices architecture. Instead of embedding networking logic (retries, timeouts, mTLS, observability) into each application, the mesh provides these capabilities transparently through proxies deployed alongside each workload.</p>
+<h3>Why Service Meshes Exist</h3>
+<p>As organizations move from monoliths to microservices, the number of network hops between services explodes. Each hop introduces failure modes: latency spikes, partial failures, security gaps. Libraries like Netflix Hystrix tried to solve this at the application layer, but that approach requires every team to adopt the same library, in the same language, with consistent configuration. A service mesh decouples networking concerns from application code entirely.</p>
+<h3>Data Plane vs Control Plane</h3>
+<p>Every service mesh has two fundamental components:</p>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>Data Plane:</strong> The set of proxies (sidecars) that intercept all network traffic between services. In Istio, this is <strong>Envoy Proxy</strong>.</li>
+<li><strong>Control Plane:</strong> The management layer that configures and coordinates the data plane proxies. In Istio, this is <strong>Istiod</strong>. It pushes configuration via xDS APIs.</li>
+</ul>
+<h3>The Sidecar Pattern</h3>
+<p>In sidecar mode, Istio injects an Envoy proxy container into every pod. An init container (or the Istio CNI plugin) configures iptables rules to redirect all inbound and outbound traffic through the sidecar. The application is completely unaware of the mesh.</p>
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>Service Mesh:</strong> Infrastructure layer for service-to-service communication - handles mTLS, routing, observability without app changes</li>
+<li><strong>Envoy Proxy:</strong> High-performance L4/L7 proxy, the universal data plane for Istio</li>
+<li><strong>Sidecar Pattern:</strong> Envoy runs as a container alongside the app in the same pod, intercepting all traffic via iptables</li>
+<li><strong>xDS APIs:</strong> The protocol Istiod uses to push configuration to Envoy sidecars (LDS, RDS, CDS, EDS, SDS)</li>
+<li><strong>mTLS by default:</strong> All service-to-service traffic is encrypted and mutually authenticated without app changes</li>
+<li><strong>Traffic interception:</strong> iptables rules (or Istio CNI) redirect pod traffic through the sidecar transparently</li>
+</ul>
+</div>
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Start Here</span><a href="https://istio.io/latest/docs/concepts/what-is-istio/" target="_blank">Istio: What is Istio?</a></li>
+<li><span class="link-type">DOCS</span><a href="https://www.envoyproxy.io/docs/envoy/latest/intro/what_is_envoy" target="_blank">Envoy: What is Envoy?</a></li>
+<li><span class="link-type">DOCS</span><a href="https://istio.io/latest/docs/ops/deployment/architecture/" target="_blank">Istio Architecture Overview</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+service+mesh+introduction+2024" target="_blank">Search: Istio Service Mesh Introduction (YouTube)</a></li>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=envoy+proxy+explained" target="_blank">Search: Envoy Proxy Explained (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m2">
+<h2>2. Istio Architecture</h2>
+<p>Istio's architecture has evolved significantly. Early versions had separate control plane components (Pilot, Citadel, Galley, Mixer). Since Istio 1.5, these were consolidated into a single binary: <strong>Istiod</strong>.</p>
+<h3>Istiod - The Unified Control Plane</h3>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>Pilot:</strong> Service discovery and traffic management. Converts routing rules into Envoy-specific configuration via xDS.</li>
+<li><strong>Citadel:</strong> Certificate authority. Issues SPIFFE-based X.509 certificates to all workloads for mTLS.</li>
+<li><strong>Galley:</strong> Configuration validation and distribution.</li>
+</ul>
+<h3>Sidecar Injection</h3>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>Automatic:</strong> Label namespace with <code>istio-injection=enabled</code>. Mutating webhook adds sidecar to every new pod.</li>
+<li><strong>Manual:</strong> Use <code>istioctl kube-inject</code> to modify YAML before applying.</li>
+</ul>
+<h3>Istio CNI Plugin</h3>
+<p>Eliminates the init container with <code>NET_ADMIN</code>/<code>NET_RAW</code> capabilities by configuring traffic redirection at the CNI level. Important for Pod Security Standards restricted profile and platforms like EKS with strict security policies.</p>
+<h3>CRDs Overview</h3>
+<table>
+<tr><th>CRD</th><th>Purpose</th><th>Scope</th></tr>
+<tr><td><strong>VirtualService</strong></td><td>Routing rules, traffic splitting, retries, timeouts, fault injection</td><td>Namespace/mesh</td></tr>
+<tr><td><strong>DestinationRule</strong></td><td>Load balancing, connection pools, outlier detection, TLS, subsets</td><td>Per service</td></tr>
+<tr><td><strong>Gateway</strong></td><td>Ingress/egress: ports, protocols, TLS termination at mesh boundary</td><td>Mesh boundary</td></tr>
+<tr><td><strong>ServiceEntry</strong></td><td>Register external services into the mesh</td><td>Mesh-wide</td></tr>
+<tr><td><strong>Sidecar</strong></td><td>Fine-tune sidecar scope (limit reachable services)</td><td>Workload/namespace</td></tr>
+<tr><td><strong>PeerAuthentication</strong></td><td>mTLS mode: STRICT, PERMISSIVE, DISABLE</td><td>Namespace/workload</td></tr>
+<tr><td><strong>AuthorizationPolicy</strong></td><td>Access control: ALLOW, DENY, CUSTOM actions</td><td>Namespace/workload</td></tr>
+</table>
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>Istiod:</strong> Single control plane binary (Pilot + Citadel + Galley). Runs as Deployment in <code>istio-system</code></li>
+<li><strong>Automatic sidecar injection:</strong> Namespace label <code>istio-injection=enabled</code> triggers mutating webhook</li>
+<li><strong>Istio CNI Plugin:</strong> Eliminates init container with NET_ADMIN. Required for PSS restricted profile</li>
+<li><strong>SPIFFE identity:</strong> Each workload gets <code>spiffe://cluster.local/ns/{namespace}/sa/{service-account}</code></li>
+</ul>
+</div>
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Architecture Reference</span><a href="https://istio.io/latest/docs/ops/deployment/architecture/" target="_blank">Istio: Architecture</a></li>
+<li><span class="link-type">DOCS</span><a href="https://istio.io/latest/docs/setup/additional-setup/cni/" target="_blank">Istio CNI Plugin Setup</a></li>
+<li><span class="link-type">DOCS</span><a href="https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/" target="_blank">Sidecar Injection</a></li>
+<li><span class="link-type">REF</span><a href="https://istio.io/latest/docs/reference/config/networking/" target="_blank">Istio Networking CRD Reference</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+architecture+deep+dive+istiod" target="_blank">Search: Istio Architecture Deep Dive (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m3">
+<h2>3. Traffic Management</h2>
+<p>Traffic management is Istio's core value proposition. It decouples traffic routing from deployment topology, enabling canary deployments, A/B testing, traffic mirroring, and header-based routing without modifying application code.</p>
+<h3>VirtualService - Routing Rules</h3>
+<p>Defines how requests are routed. Supports match conditions based on URI, headers, query parameters, source labels. Multiple match rules evaluated in order - first match wins.</p>
+<pre><code>apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts:
+  - reviews
+  http:
+  - match:
+    - headers:
+        end-user:
+          exact: jason
+    route:
+    - destination:
+        host: reviews
+        subset: v2
+  - route:
+    - destination:
+        host: reviews
+        subset: v1</code></pre>
+<h3>DestinationRule - Subsets and Load Balancing</h3>
+<pre><code>apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: reviews
+spec:
+  host: reviews
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+  - name: v3
+    labels:
+      version: v3</code></pre>
+<h3>Traffic Shifting (Canary Deployments)</h3>
+<pre><code>apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts:
+  - reviews
+  http:
+  - route:
+    - destination:
+        host: reviews
+        subset: v1
+      weight: 90
+    - destination:
+        host: reviews
+        subset: v2
+      weight: 10</code></pre>
+<h3>Traffic Mirroring</h3>
+<p>Mirror production traffic to a new version for testing. Mirrored traffic is fire-and-forget - responses are discarded.</p>
+<h3>Gateway - Ingress/Egress</h3>
+<p>An Istio Gateway configures a load balancer at the edge of the mesh. Combined with a VirtualService, it controls how external traffic enters the mesh.</p>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>VirtualService:</strong> Routing rules - match conditions, traffic splitting, mirroring, retries, timeouts, fault injection</li>
+<li><strong>DestinationRule:</strong> Post-routing policies - subsets (versions), load balancing, connection pools, outlier detection</li>
+<li><strong>Gateway:</strong> Mesh boundary config - ingress/egress ports, TLS termination, host matching</li>
+<li><strong>Traffic shifting:</strong> Weight-based routing for canary deployments (90/10 → 50/50 → 0/100)</li>
+<li><strong>Traffic mirroring:</strong> Shadow traffic to new versions for testing without user impact</li>
+<li><strong>Header-based routing:</strong> Route specific users (e.g., <code>end-user: jason</code>) to different versions</li>
+</ul>
+</div>
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Core Reference</span><a href="https://istio.io/latest/docs/concepts/traffic-management/" target="_blank">Istio: Traffic Management Concepts</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/traffic-management/" target="_blank">Istio: Traffic Management Tasks</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/traffic-management/request-routing/" target="_blank">Request Routing Task</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/traffic-management/traffic-shifting/" target="_blank">Traffic Shifting Task</a></li>
+<li><span class="link-type">REF</span><a href="https://istio.io/latest/docs/reference/config/networking/virtual-service/" target="_blank">VirtualService API Reference</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+traffic+management+canary+deployment" target="_blank">Search: Istio Traffic Management Canary (YouTube)</a></li>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+bookinfo+demo+traffic+splitting" target="_blank">Search: Istio BookInfo Demo Traffic Splitting (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m4">
+<h2>4. Network Resiliency</h2>
+<p>Microservices architectures are inherently distributed, which means network failures are the norm. Istio provides resiliency features that protect services from cascading failures without application code changes.</p>
+<h3>Circuit Breaker</h3>
+<p>Circuit breakers prevent a failing service from overwhelming the system. Configured via <strong>DestinationRule</strong> using <code>connectionPool</code> (limits) and <code>outlierDetection</code> (ejection).</p>
+<pre><code>apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: reviews
+spec:
+  host: reviews
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 10s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50</code></pre>
+<h3>Retries</h3>
+<p>Automatic retries handle transient failures. Configure via VirtualService with control over attempts, per-try timeout, and retry conditions.</p>
+<pre><code>apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: ratings
+spec:
+  hosts:
+  - ratings
+  http:
+  - route:
+    - destination:
+        host: ratings
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
+      retryOn: 5xx,gateway-error,connect-failure</code></pre>
+<h3>Timeouts</h3>
+<p>Timeouts prevent requests from hanging indefinitely. Set at the VirtualService level, they apply to the entire request lifecycle including retries.</p>
+<pre><code>apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts:
+  - reviews
+  http:
+  - route:
+    - destination:
+        host: reviews
+    timeout: 10s</code></pre>
+<h3>Fault Injection</h3>
+<p>Test resiliency by deliberately introducing failures. Two types: <strong>delay</strong> (simulates latency) and <strong>abort</strong> (simulates HTTP errors).</p>
+<pre><code>apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: ratings
+spec:
+  hosts:
+  - ratings
+  http:
+  - fault:
+      delay:
+        percentage:
+          value: 100.0
+        fixedDelay: 7s
+    route:
+    - destination:
+        host: ratings</code></pre>
+<p>Injects a 7-second delay on 100% of requests to ratings - tests how upstream services handle slow dependencies.</p>
+<h3>Outlier Detection</h3>
+<p>Tracks health of individual endpoints. When an endpoint exceeds the error threshold, it is temporarily ejected from the load balancing pool. Prevents a single bad pod from degrading the entire service.</p>
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>Circuit breaker:</strong> DestinationRule connectionPool (limits) + outlierDetection (ejection). Prevents cascading failures</li>
+<li><strong>Retries:</strong> VirtualService retries config. Control attempts, per-try timeout, and retry conditions</li>
+<li><strong>Timeouts:</strong> VirtualService timeout. Applies to entire request lifecycle including retries</li>
+<li><strong>Fault injection - delay:</strong> Simulate latency (e.g., 7s delay on ratings). Tests timeout and retry behavior</li>
+<li><strong>Fault injection - abort:</strong> Simulate HTTP errors (e.g., 503). Tests circuit breaker and fallback behavior</li>
+<li><strong>Outlier detection:</strong> Ejects unhealthy endpoints. Key params: consecutive5xxErrors, interval, baseEjectionTime, maxEjectionPercent</li>
+</ul>
+</div>
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Core Reference</span><a href="https://istio.io/latest/docs/concepts/traffic-management/#network-resilience-and-testing" target="_blank">Istio: Network Resilience and Testing</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/traffic-management/fault-injection/" target="_blank">Fault Injection Task</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/traffic-management/circuit-breaking/" target="_blank">Circuit Breaking Task</a></li>
+<li><span class="link-type">BLOG</span><a href="https://aws.amazon.com/blogs/opensource/enhancing-network-resilience-with-istio-on-amazon-eks/" target="_blank">AWS: Enhancing Network Resilience with Istio on EKS</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+circuit+breaker+fault+injection+demo" target="_blank">Search: Istio Circuit Breaker + Fault Injection (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m5">
+<h2>5. Security & Zero Trust</h2>
+<p>Istio implements a <strong>zero trust security model</strong> where no service is trusted by default, even within the cluster. Every request is authenticated, authorized, and encrypted - all transparently at the sidecar level.</p>
+<h3>mTLS - Mutual TLS</h3>
+<p>Istiod acts as a Certificate Authority, issuing SPIFFE-based X.509 certificates to every workload. mTLS mode is controlled by <strong>PeerAuthentication</strong>:</p>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>STRICT:</strong> Only mTLS traffic accepted. Non-mesh clients rejected.</li>
+<li><strong>PERMISSIVE:</strong> Accepts both mTLS and plaintext. Default - allows gradual mesh adoption.</li>
+<li><strong>DISABLE:</strong> No mTLS. Rarely used.</li>
+</ul>
+<pre><code>apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT</code></pre>
+<h3>AuthorizationPolicy</h3>
+<p>Controls which services can communicate. Three actions:</p>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>ALLOW:</strong> Explicitly permit matching requests. If any ALLOW exists, non-matching requests are denied.</li>
+<li><strong>DENY:</strong> Explicitly reject. Evaluated before ALLOW.</li>
+<li><strong>CUSTOM:</strong> Delegate to external provider (OPA, custom webhook).</li>
+</ul>
+<pre><code>apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-productpage
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: productpage
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/frontend"]
+    to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/productpage", "/static/*"]</code></pre>
+<h3>RequestAuthentication - JWT Validation</h3>
+<p>Validates JWTs on incoming requests. Specifies accepted issuers and JWKS URIs for signature verification.</p>
+<pre><code>apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: productpage
+  jwtRules:
+  - issuer: "https://accounts.google.com"
+    jwksUri: "https://www.googleapis.com/oauth2/v3/certs"</code></pre>
+<h3>SPIFFE Identity Model</h3>
+<p>Every workload gets a <strong>SPIFFE ID</strong>: <code>spiffe://cluster.local/ns/{namespace}/sa/{service-account}</code>. Embedded in X.509 certificates, used for mTLS authentication and authorization policy evaluation. Enables identity federation across clusters.</p>
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>PeerAuthentication:</strong> Controls mTLS mode (STRICT/PERMISSIVE/DISABLE) per mesh, namespace, or workload</li>
+<li><strong>AuthorizationPolicy:</strong> L4/L7 access control with ALLOW, DENY, CUSTOM. DENY evaluated first</li>
+<li><strong>RequestAuthentication:</strong> JWT validation at mesh level. Specifies accepted issuers and JWKS URIs</li>
+<li><strong>SPIFFE:</strong> Workload identity: <code>spiffe://trust-domain/ns/namespace/sa/service-account</code></li>
+<li><strong>Zero Trust pattern:</strong> deny-all default + explicit ALLOW rules = least-privilege networking</li>
+<li><strong>Certificate rotation:</strong> Istiod rotates workload certificates automatically (default 24h TTL)</li>
+</ul>
+</div>
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Core Reference</span><a href="https://istio.io/latest/docs/concepts/security/" target="_blank">Istio: Security Concepts</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/security/authentication/mtls-migration/" target="_blank">mTLS Migration Task</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/security/authorization/" target="_blank">Authorization Tasks</a></li>
+<li><span class="link-type">BLOG</span><a href="https://aws.amazon.com/blogs/opensource/achieving-zero-trust-security-on-amazon-eks-with-istio/" target="_blank">AWS: Zero Trust Security on EKS with Istio</a></li>
+<li><span class="link-type">DOCS</span><a href="https://spiffe.io/docs/latest/spiffe-about/overview/" target="_blank">SPIFFE: Overview</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+mtls+zero+trust+security" target="_blank">Search: Istio mTLS Zero Trust Security (YouTube)</a></li>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+authorization+policy+demo" target="_blank">Search: Istio AuthorizationPolicy Demo (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m6">
+<h2>6. Observability</h2>
+<p>One of Istio's most immediate benefits is deep observability without instrumenting application code. All traffic flows through Envoy sidecars, which automatically collect metrics, traces, and access logs for every request.</p>
+<h3>Kiali - Service Mesh Visualization</h3>
+<p><strong>Kiali</strong> is the observability console for Istio. Real-time traffic graph showing service-to-service communication, request rates, error rates, and latency. Also validates Istio configuration and detects misconfigurations.</p>
+<h3>Distributed Tracing - Jaeger/Tempo</h3>
+<p>Istio generates trace spans for every request. Spans are sent to Jaeger, Zipkin, or Grafana Tempo. Important: Istio handles span creation at the proxy level, but <strong>applications must propagate trace headers</strong> (<code>x-request-id</code>, <code>x-b3-traceid</code>) for end-to-end correlation.</p>
+<h3>Metrics - Prometheus + Grafana</h3>
+<p>Envoy sidecars expose metrics in Prometheus format:</p>
+<ul style="margin:8px 0 8px 20px">
+<li><code>istio_requests_total</code> - Request count by source, destination, response code</li>
+<li><code>istio_request_duration_milliseconds</code> - Latency histogram</li>
+<li><code>istio_tcp_sent_bytes_total</code> / <code>istio_tcp_received_bytes_total</code> - TCP volume</li>
+</ul>
+<h3>Access Logging</h3>
+<p>Configure via <code>Telemetry</code> CRD or <code>MeshConfig</code>. Logs include source/destination workload, response code, latency, and request metadata.</p>
+<pre><code>apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-system
+spec:
+  accessLogging:
+  - providers:
+    - name: envoy</code></pre>
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>Kiali:</strong> Service mesh console - traffic graph, config validation, health monitoring</li>
+<li><strong>Distributed tracing:</strong> Jaeger/Tempo integration. Apps must propagate trace headers</li>
+<li><strong>Prometheus metrics:</strong> istio_requests_total, istio_request_duration_milliseconds - auto-collected</li>
+<li><strong>Grafana dashboards:</strong> Pre-built mesh overview, service, and workload dashboards in Istio addons</li>
+<li><strong>Access logging:</strong> Per-request logs via Telemetry CRD. Useful for debugging and audit</li>
+<li><strong>Addons install:</strong> <code>kubectl apply -f samples/addons/</code> installs Kiali, Jaeger, Prometheus, Grafana</li>
+</ul>
+</div>
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Core Reference</span><a href="https://istio.io/latest/docs/tasks/observability/" target="_blank">Istio: Observability Tasks</a></li>
+<li><span class="link-type">DOCS</span><a href="https://kiali.io/docs/" target="_blank">Kiali Documentation</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/observability/distributed-tracing/" target="_blank">Distributed Tracing Tasks</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/observability/metrics/" target="_blank">Metrics Tasks</a></li>
+<li><span class="link-type">TASK</span><a href="https://istio.io/latest/docs/tasks/observability/logs/access-log/" target="_blank">Access Logging</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+kiali+dashboard+demo" target="_blank">Search: Istio Kiali Dashboard Demo (YouTube)</a></li>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+observability+prometheus+grafana+jaeger" target="_blank">Search: Istio Observability Stack (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+</div>
+<footer>
+<p>Istio Core (Sidecar Mode) Training Portal - Generated May 2, 2026</p>
+<p>6 modules · 25+ sources · Based on istio.io, Envoy docs, AWS blogs, and field notes</p>
+</footer>
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);
+  localStorage.setItem('istio-core-theme',t);
+}
+(function(){
+  const s=localStorage.getItem('istio-core-theme');
+  if(s)document.documentElement.setAttribute('data-theme',s);
+})();
+</script>
+</body>
+</html>

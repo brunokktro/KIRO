@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NGINX Ingress Migration - Training Portal</title>
+<style>
+:root{
+  --bg:#fff;
+  --text:#1a1a2e;
+  --card-bg:#f8f9fa;
+  --border:#e0e0e0;
+  --accent:#0073BB;
+  --header-bg:#232F3E;
+  --code-bg:#f4f4f4;
+  --key-bg:#e8f4fd;
+  --key-border:#b3d9f2;
+  --shadow:rgba(0,0,0,.08);
+}
+[data-theme="dark"]{
+  --bg:#1a1a2e;
+  --text:#e0e0e0;
+  --card-bg:#16213e;
+  --border:#2a2a4a;
+  --accent:#4fc3f7;
+  --header-bg:#0f3460;
+  --code-bg:#16213e;
+  --key-bg:#1a2744;
+  --key-border:#2a4a6a;
+  --shadow:rgba(0,0,0,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:960px;margin:0 auto;padding:0 24px}
+header{background:var(--header-bg);color:#fff;padding:48px 0 36px}
+header h1{font-size:2rem;margin-bottom:8px}
+header p{opacity:.85;font-size:1.05rem}
+.meta{margin-top:12px;font-size:.85rem;opacity:.65}
+.badge{background:var(--accent);color:#fff;padding:2px 10px;border-radius:12px;font-size:.75rem;vertical-align:middle}
+.theme-toggle{position:fixed;top:1rem;right:1rem;z-index:100;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow)}
+.toc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px 32px;margin:32px 0}
+.toc h2{font-size:1.2rem;margin-bottom:12px}
+.toc ol{padding-left:20px}
+.toc li{margin:6px 0}
+.toc-group{font-size:.8rem;font-weight:700;text-transform:uppercase;color:var(--accent);margin-top:16px;margin-bottom:4px;letter-spacing:.5px}
+.module{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:32px;margin:24px 0;box-shadow:0 2px 8px var(--shadow)}
+.module h2{font-size:1.5rem;margin-bottom:16px;color:var(--accent);border-bottom:2px solid var(--border);padding-bottom:8px}
+.module h3{margin:20px 0 8px;font-size:1.15rem}
+.module p{margin:8px 0}
+.key-concepts{background:var(--key-bg);border:1px solid var(--key-border);border-radius:8px;padding:16px 20px;margin:16px 0}
+.key-concepts h4{margin-bottom:8px}
+.key-concepts ul{padding-left:20px}
+.key-concepts li{margin:4px 0}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;font-size:.88rem;line-height:1.5;margin:12px 0}
+code{font-family:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace}
+.hands-on{border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--key-bg);border-radius:0 8px 8px 0}
+.hands-on h4{margin-bottom:8px}
+.resources-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}
+@media(max-width:700px){.resources-grid{grid-template-columns:1fr}}
+.resources-grid h4{margin-bottom:10px;font-size:.95rem}
+.resources-grid ul{list-style:none;padding:0}
+.resources-grid li{margin:8px 0;font-size:.9rem}
+.link-type{display:inline-block;background:var(--border);color:var(--text);padding:1px 6px;border-radius:3px;font-size:.7rem;font-weight:700;margin-right:6px;text-transform:uppercase}
+.badge-important{background:#FFF3CD;color:#856404;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-notes{background:#D4EDDA;color:#155724;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-new{background:#d4edda;color:#155724;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-ai{background:#f8d7da;color:#721c24;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.vc{display:block;text-decoration:none;color:var(--text);margin-bottom:12px;border-radius:8px;overflow:hidden;border:1px solid var(--border);transition:box-shadow .2s}
+.vc:hover{box-shadow:0 4px 16px var(--shadow);text-decoration:none}
+.thumb{position:relative;background:#000}
+.thumb img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+.play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.5rem;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.vtitle{padding:8px 10px;font-size:.85rem;font-weight:500}
+.warning-box{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px 20px;margin:16px 0;color:#856404}
+[data-theme="dark"] .warning-box{background:#3b2e00;border-color:#ffc107;color:#FEC448}
+[data-theme="dark"] .badge-important{background:#3b2e00;color:#FEC448}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.9rem}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--key-bg);font-weight:600}
+footer{text-align:center;padding:32px;font-size:.85rem;opacity:.6;margin-top:32px}
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌓</button>
+<header>
+<div class="container">
+<h1>🔄 NGINX Ingress Migration <span class="badge">2026</span></h1>
+<p>Da aposentadoria do ingress-nginx ao futuro com AWS LBC e Gateway API - guia completo de migração para clientes AWS/EKS</p>
+<div class="meta">Generated May 2, 2026 · Based on AWS blog, F5 docs, k8s.io, and field notes · 7 modules</div>
+</div>
+</header>
+<div class="container">
+<nav class="toc">
+<h2>📑 Table of Contents</h2>
+<div class="toc-group">Context & Impact</div>
+<ol>
+<li><a href="#m1">The NGINX Ingress Retirement - What Happened and Why</a></li>
+<li><a href="#m2">Migration Options Overview - Decision Framework</a></li>
+</ol>
+<div class="toc-group">Migration Path: AWS Load Balancer Controller</div>
+<ol start="3">
+<li><a href="#m3">AWS LBC Architecture and Feature Comparison</a></li>
+<li><a href="#m4">Migrating Ingress Resources - URI Rewrite, TLS, Annotations</a></li>
+</ol>
+<div class="toc-group">Migration Path: Gateway API</div>
+<ol start="5">
+<li><a href="#m5">Kubernetes Gateway API Fundamentals</a></li>
+<li><a href="#m6">AWS LBC v3 + Gateway API on EKS</a></li>
+</ol>
+<div class="toc-group">Advanced & Real-World</div>
+<ol start="7">
+<li><a href="#m7">Real-World Migration Scenarios and Gotchas</a></li>
+</ol>
+</nav>
+
+<section class="module" id="m1">
+<h2>1. The NGINX Ingress Retirement - What Happened and Why</h2>
+<p>In November 2025, the Kubernetes SIG Network and Security Response Committee announced the retirement of the <strong>ingress-nginx</strong> project (kubernetes/ingress-nginx). As of March 2026, the repository is archived and read-only. No more releases, bug fixes, or security patches will be issued.</p>
+<p>This impacts approximately <strong>50% of cloud-native environments</strong> that depend on ingress-nginx. Organizations continuing to run it face escalating security risks from unpatched vulnerabilities, potential compliance violations (SOC 2, PCI-DSS, HIPAA), and operational risks from permanently unresolved issues.</p>
+
+<div class="warning-box">
+<strong>⚠️ Critical Disambiguation (from field experience):</strong><br>
+<strong>nginx/ingress</strong> (community controller) - DEAD, migrate ASAP<br>
+<strong>Ingress</strong> (Kubernetes API resource) - still valid, NOT going away<br>
+<strong>Gateway API</strong> - future direction, but NOT mandatory right now<br><br>
+Many customers confuse these: they read about nginx-ingress going away, see the Gateway API recommendation, and think they need to ditch Ingress entirely. They don't.
+</div>
+
+<h3>How to check if you're affected</h3>
+<div class="hands-on">
+<h4>🛠️ Try it yourself</h4>
+<pre><code># Run against each cluster to detect ingress-nginx
+kubectl get pods --all-namespaces \
+  --selector app.kubernetes.io/name=ingress-nginx
+
+# Check the controller version
+kubectl get deploy -n ingress-nginx \
+  ingress-nginx-controller \
+  -o jsonpath='{.spec.template.spec.containers[0].image}'</code></pre>
+</div>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>ingress-nginx</strong> (kubernetes/ingress-nginx) - the community-maintained NGINX Ingress Controller, now retired</li>
+<li><strong>F5 NGINX Ingress Controller</strong> (nginxinc/kubernetes-ingress) - commercially supported by F5, still active</li>
+<li><strong>Kubernetes Ingress API</strong> - the standard API resource (networking.k8s.io/v1), still fully supported</li>
+<li><strong>Gateway API</strong> - next-gen Kubernetes networking API (CRDs), successor to Ingress API</li>
+<li>Existing deployments continue to function after retirement but receive zero security patches</li>
+<li>The retirement was driven by fundamental architectural limitations that made long-term maintenance impossible</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Important Reference</span><a href="https://kubernetes.io/blog/2026/01/29/ingress-nginx-statement/" target="_blank">Kubernetes Steering Committee Statement on ingress-nginx</a></li>
+<li><span class="link-type">BLOG</span><a href="https://www.abgeo.dev/blog/nginx-ingress-retirement/" target="_blank">NGINX Ingress Retirement - Complete Guide to What Comes Next</a></li>
+<li><span class="link-type">BLOG</span><a href="https://opensource.googleblog.com/2026/02/the-end-of-an-era-transitioning-away-from-ingress-nginx.html" target="_blank">Google: The End of an Era - Transitioning Away from Ingress NGINX</a></li>
+<li><span class="link-type">BLOG</span><a href="https://www.haproxy.com/blog/ingress-nginx-is-retiring" target="_blank">HAProxy: Ingress NGINX is Retiring - Here's Your Path Forward</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<p style="font-size:.85rem;color:var(--text);opacity:.7">Videos on this topic are linked in Module 5 (Gateway API) and Module 7 (Real-World Scenarios).</p>
+</div>
+</div>
+</section>
+
+<section class="module" id="m2">
+<h2>2. Migration Options Overview - Decision Framework</h2>
+<p>There is no single "right" migration path. The best option depends on your architecture, scale, existing tooling, and timeline. Here's a decision framework based on real customer engagements:</p>
+
+<table>
+<tr><th>Option</th><th>Target</th><th>Best For</th><th>Limitations</th></tr>
+<tr><td><strong>Option 1:</strong> AWS LBC via Ingress</td><td>AWS Load Balancer Controller</td><td>Standard EKS workloads, up to ~100 services/cluster, AWS-native integrations (ACM, WAF, Shield)</td><td>100 Target Groups per ALB hard limit</td></tr>
+<tr><td><strong>Option 2:</strong> F5 NGINX IC</td><td>F5 NGINX Ingress Controller</td><td>Existing F5 licensing, complex NGINX-specific configs, 200-300 services (avoids ALB TG limit)</td><td>Commercial license required, in-cluster proxy overhead</td></tr>
+<tr><td><strong>Option 3:</strong> Envoy Gateway</td><td>Envoy-based Gateway API</td><td>100+ services with path-based routing, single NLB/PrivateLink entry point</td><td>Newer ecosystem, less AWS-native integration</td></tr>
+<tr><td><strong>Option 4:</strong> Keep NGINX behind NLB</td><td>Temporary bridge</td><td>Short-term while planning longer migration</td><td>No security patches, growing risk over time</td></tr>
+</table>
+
+<div class="key-concepts">
+<h4>🔑 Decision Criteria</h4>
+<ul>
+<li><strong>Service count per cluster:</strong> Under 100 services → AWS LBC is the simplest path. Over 100 → consider F5 NGINX IC or Envoy Gateway</li>
+<li><strong>AWS-native vs portable:</strong> AWS LBC gives you ACM, WAF, Shield, CloudWatch natively. Envoy Gateway is more portable across clouds</li>
+<li><strong>EKS Auto Mode:</strong> AWS LBC is natively included. Gateway API is NOT natively supported in Auto Mode yet (as of May 2026)</li>
+<li><strong>Timeline:</strong> Migrate ingress-nginx first (to AWS LBC via Ingress), then plan Gateway API adoption separately</li>
+<li><strong>PrivateLink architecture:</strong> If you have NLB + PrivateLink chains, the NLB stays - you're only replacing what's behind it</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Important Reference</span><a href="https://aws.amazon.com/blogs/networking-and-content-delivery/navigating-the-nginx-ingress-retirement-a-practical-guide-to-migration-on-aws/" target="_blank">AWS: Navigating the NGINX Ingress Retirement - Practical Guide</a></li>
+<li><span class="badge-important">⭐ Important Reference</span><a href="https://www.f5.com/company/blog/nginx/migrating-from-community-ingress-controller-to-f5-nginx-ingress-controller" target="_blank">F5: Migrating from Community IC to F5 NGINX IC</a></li>
+<li><span class="link-type">DOCS</span><a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/migrate-nginx-ingress-controller-eks-auto-mode.html" target="_blank">AWS Prescriptive Guidance: Migrate NGINX IC with EKS Auto Mode</a></li>
+<li><span class="link-type">BLOG</span><a href="https://www.okteto.com/blog/ingress-nginx-controller-deprecation-your-migration-guide-to-kubernetes-gateway-api" target="_blank">Okteto: Ingress NGINX Deprecation - Gateway API Migration Guide</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<p style="font-size:.85rem;color:var(--text);opacity:.7">See Module 5 for Gateway API deep-dive videos and Module 7 for real-world migration walkthroughs.</p>
+</div>
+</div>
+</section>
+
+<section class="module" id="m3">
+<h2>3. AWS LBC Architecture and Feature Comparison</h2>
+<p>The AWS Load Balancer Controller automates provisioning, configuration, and lifecycle management of both ALBs and NLBs as you deploy workloads in EKS. Unlike ingress-nginx (which runs as in-cluster pods acting as reverse proxy), AWS LBC provisions <strong>native AWS load balancers outside the cluster</strong> and routes traffic directly to pods via the VPC CNI.</p>
+
+<h3>Architecture Comparison</h3>
+<table>
+<tr><th>Aspect</th><th>NGINX Ingress (community)</th><th>AWS Load Balancer Controller</th></tr>
+<tr><td>Traffic flow</td><td>All traffic flows through NGINX pods (potential bottleneck)</td><td>Routes directly to pods via AWS LB infrastructure</td></tr>
+<tr><td>Load balancer</td><td>Requires a LoadBalancer Service for external access</td><td>Provisions native ALB/NLB outside the cluster</td></tr>
+<tr><td>TLS termination</td><td>Kubernetes Secrets (in-cluster)</td><td>AWS Certificate Manager (managed, auto-renewal)</td></tr>
+<tr><td>Security</td><td>Self-managed, NGINX features</td><td>Native WAF, Shield, Cognito/OIDC integration</td></tr>
+<tr><td>Observability</td><td>NGINX metrics, custom dashboards</td><td>CloudWatch metrics, ALB access logs natively</td></tr>
+<tr><td>Scaling</td><td>Manual pod scaling, linear cost increase</td><td>Automatic, usage-based (LCU pricing)</td></tr>
+<tr><td>Maintenance</td><td>Self-managed (patching, upgrades, health)</td><td>AWS-managed infrastructure</td></tr>
+<tr><td>URI Rewrite</td><td>Annotations + regex</td><td>Native ALB URL rewrite (GA Oct 2025)</td></tr>
+</table>
+
+<h3>Key AWS LBC Features</h3>
+<p>As of v3.0, AWS LBC supports:</p>
+<ul style="padding-left:20px;margin:8px 0">
+<li><strong>Ingress resources</strong> - provisions ALBs with path/host-based routing</li>
+<li><strong>Service type LoadBalancer</strong> - provisions NLBs</li>
+<li><strong>Gateway API (GA)</strong> - provisions ALBs and NLBs via Gateway/HTTPRoute/TCPRoute CRDs</li>
+<li><strong>IngressGroup</strong> - share a single ALB across multiple Ingress resources</li>
+<li><strong>Target type: ip</strong> - direct pod routing (no NodePort hop), recommended for performance</li>
+<li><strong>URL rewrite</strong> - native regex-based URI rewriting on ALB (no NGINX needed)</li>
+<li><strong>Certificate discovery</strong> - auto-discovers ACM certificates by hostname</li>
+</ul>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>ALB (Application Load Balancer):</strong> Layer 7 (HTTP/HTTPS) - path/host routing, WAF, auth, URL rewrite</li>
+<li><strong>NLB (Network Load Balancer):</strong> Layer 4 (TCP/UDP) - high throughput, low latency, PrivateLink compatible</li>
+<li><strong>Target type ip:</strong> Routes directly to pod IPs via VPC CNI - eliminates NodePort hop, better performance</li>
+<li><strong>IngressGroup:</strong> Annotation that groups multiple Ingress resources behind a single ALB (cost optimization)</li>
+<li><strong>100 Target Groups per ALB:</strong> Hard limit, not adjustable. Key constraint for high-density clusters</li>
+<li><strong>LCU pricing:</strong> Pay per Load Balancer Capacity Unit based on actual connections/requests/data processed</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="link-type">DOCS</span><a href="https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html" target="_blank">EKS User Guide: AWS Load Balancer Controller</a></li>
+<li><span class="link-type">DOCS</span><a href="https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html" target="_blank">EKS User Guide: Route HTTP traffic with ALB</a></li>
+<li><span class="link-type">DOCS</span><a href="https://docs.aws.amazon.com/eks/latest/best-practices/load-balancing.html" target="_blank">EKS Best Practices: Load Balancing</a></li>
+<li><span class="link-type">DOCS</span><a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/" target="_blank">AWS LBC Documentation (GitHub)</a></li>
+<li><span class="link-type">DOCS</span><a href="https://docs.aws.amazon.com/eks/latest/userguide/lbc-helm.html" target="_blank">Install AWS LBC with Helm</a></li>
+<li><span class="link-type">BLOG</span><a href="https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-2-aws-load-balancer-controller/" target="_blank">Exposing K8s Applications Part 2: AWS LBC</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<p style="font-size:.85rem;opacity:.7">AWS LBC setup tutorials are available on the <a href="https://community.aws/content/2pq1iE17jw6f9aCPkCS0MkyV0Kx/how-to-set-up-an-eks-cluster-with-aws-load-balancer-controller-and-kubernetes-dashboard" target="_blank">AWS Community guide</a> and <a href="https://devopscube.com/aws-load-balancer-controller-on-eks/" target="_blank">DevOpsCube complete guide</a>.</p>
+</div>
+</div>
+</section>
+
+<section class="module" id="m4">
+<h2>4. Migrating Ingress Resources - URI Rewrite, TLS, Annotations</h2>
+<p>The most common migration path for AWS customers: replace ingress-nginx with AWS LBC while keeping standard Kubernetes <code>Ingress</code> resources. The key is mapping NGINX annotations to AWS LBC annotations.</p>
+
+<h3>Example 1: URI Rewrite</h3>
+<p>Route traffic from <code>rewrite.bar.com/something/*</code> to backend at <code>/*</code>, removing the <code>/something</code> prefix.</p>
+
+<h3>NGINX Ingress (before)</h3>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rewrite
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: rewrite.bar.com
+    http:
+      paths:
+      - path: /something(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: http-svc
+            port:
+              number: 80</code></pre>
+
+<h3>AWS LBC (after)</h3>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rewrite
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/transforms.http-svc: |
+      [
+        {
+          "type": "url-rewrite",
+          "urlRewriteConfig": {
+            "rewrites": [
+              {
+                "regex": "^\\/something\\/(.*)$",
+                "replace": "/$1"
+              }
+            ]
+          }
+        }
+      ]
+spec:
+  ingressClassName: alb
+  rules:
+  - host: rewrite.bar.com
+    http:
+      paths:
+      - path: /something
+        pathType: Prefix
+        backend:
+          service:
+            name: http-svc
+            port:
+              number: 80</code></pre>
+
+<div class="warning-box">
+<strong>Gotchas:</strong> The <code>transforms.http-svc</code> annotation name MUST match your service name. Forward slashes must be escaped as <code>\\/</code> in JSON regex. Test regex patterns carefully - ALB regex syntax may differ slightly from NGINX.
+</div>
+
+<h3>Example 2: Adding TLS Termination</h3>
+<pre><code># AWS LBC with TLS (add these annotations)
+alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:REGION:ACCOUNT:certificate/CERT-ID
+alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+alb.ingress.kubernetes.io/ssl-redirect: '443'
+alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+
+# Or use certificate discovery (no ARN needed)
+alb.ingress.kubernetes.io/certificate-discovery: "true"</code></pre>
+
+<h3>Common Annotation Mapping</h3>
+<table>
+<tr><th>NGINX Annotation</th><th>AWS LBC Equivalent</th></tr>
+<tr><td><code>nginx.ingress.kubernetes.io/rewrite-target</code></td><td><code>alb.ingress.kubernetes.io/transforms.SVC_NAME</code> (url-rewrite)</td></tr>
+<tr><td><code>nginx.ingress.kubernetes.io/ssl-redirect</code></td><td><code>alb.ingress.kubernetes.io/ssl-redirect: '443'</code></td></tr>
+<tr><td><code>nginx.ingress.kubernetes.io/proxy-read-timeout</code></td><td>ALB idle timeout (default 60s, configurable)</td></tr>
+<tr><td><code>nginx.ingress.kubernetes.io/affinity: cookie</code></td><td>ALB sticky sessions via target group attributes</td></tr>
+<tr><td><code>nginx.ingress.kubernetes.io/cors-*</code></td><td>ALB response headers (via Lambda@Edge or transforms)</td></tr>
+<tr><td><code>nginx.ingress.kubernetes.io/whitelist-source-range</code></td><td>Security Groups on ALB</td></tr>
+</table>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>ingressClassName:</strong> Change from <code>nginx</code> to <code>alb</code></li>
+<li><strong>Certificate management:</strong> Moves from K8s Secrets to ACM (auto-renewal, no in-cluster secrets)</li>
+<li><strong>URL rewrite:</strong> Native ALB feature since Oct 2025 - no more NGINX regex hacks</li>
+<li><strong>IngressGroup:</strong> Use <code>alb.ingress.kubernetes.io/group.name</code> to share one ALB across multiple Ingress resources</li>
+<li><strong>Target type ip:</strong> Always use <code>alb.ingress.kubernetes.io/target-type: ip</code> for direct pod routing</li>
+</ul>
+</div>
+
+<h3>Migration Checklist</h3>
+<div class="key-concepts">
+<h4>✅ Pre-Migration</h4>
+<ul>
+<li>Audit existing NGINX Ingress configurations and annotations</li>
+<li>Request/import certificates in AWS Certificate Manager</li>
+<li>Plan IngressGroup strategy for shared ALBs</li>
+<li>Install AWS LBC in the cluster</li>
+</ul>
+<h4>✅ During Migration</h4>
+<ul>
+<li>Convert NGINX annotations to AWS LBC annotations</li>
+<li>Update <code>ingressClassName</code> from <code>nginx</code> to <code>alb</code></li>
+<li>Test URI rewrite patterns thoroughly</li>
+<li>Monitor ALB metrics and logs</li>
+</ul>
+<h4>✅ Post-Migration</h4>
+<ul>
+<li>Remove NGINX Ingress Controller after validation</li>
+<li>Clean up unused K8s Secrets (certificates)</li>
+<li>Set up ALB access logging</li>
+<li>Configure WAF rules if needed</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Important Reference</span><a href="https://aws.amazon.com/blogs/networking-and-content-delivery/navigating-the-nginx-ingress-retirement-a-practical-guide-to-migration-on-aws/" target="_blank">AWS Blog: NGINX Ingress Retirement Migration Guide (full walkthrough)</a></li>
+<li><span class="link-type">DOCS</span><a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/ingress/annotations/" target="_blank">AWS LBC Ingress Annotations Reference</a></li>
+<li><span class="link-type">DOCS</span><a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/service/annotations/" target="_blank">AWS LBC Service Annotations Reference</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<p style="font-size:.85rem;opacity:.7">The AWS blog post above includes complete YAML examples for each migration step. For hands-on practice, see the Labs Portal.</p>
+</div>
+</div>
+</section>
+
+<section class="module" id="m5">
+<h2>5. Kubernetes Gateway API Fundamentals</h2>
+<p>Gateway API is the next-generation Kubernetes networking API, designed by SIG-Network to address the fundamental limitations of the Ingress API. It provides a <strong>role-oriented, expressive, and extensible</strong> model for managing traffic routing.</p>
+
+<h3>Why Gateway API?</h3>
+<p>The Ingress API has several design limitations that Gateway API solves:</p>
+<ul style="padding-left:20px;margin:8px 0">
+<li><strong>Vendor-specific annotations:</strong> Ingress relies on controller-specific annotations for anything beyond basic routing. Gateway API uses typed CRDs with schema validation</li>
+<li><strong>No role separation:</strong> Ingress combines infrastructure and application concerns. Gateway API splits them into GatewayClass (platform), Gateway (infra ops), and Routes (app devs)</li>
+<li><strong>Limited protocol support:</strong> Ingress only supports HTTP/HTTPS. Gateway API natively supports HTTP, HTTPS, gRPC, TCP, UDP, TLS</li>
+<li><strong>No cross-namespace routing:</strong> Ingress is namespace-scoped. Gateway API supports cross-namespace routing with explicit grants</li>
+</ul>
+
+<h3>Core Resources</h3>
+<table>
+<tr><th>Resource</th><th>Owner</th><th>Purpose</th></tr>
+<tr><td><strong>GatewayClass</strong></td><td>Platform team</td><td>Defines the controller implementation (like StorageClass for storage)</td></tr>
+<tr><td><strong>Gateway</strong></td><td>Infra/cluster ops</td><td>Instantiates the load balancer, defines listeners (ports, protocols, TLS)</td></tr>
+<tr><td><strong>HTTPRoute</strong></td><td>App developers</td><td>Defines routing rules: path matching, header matching, traffic splitting</td></tr>
+<tr><td><strong>GRPCRoute</strong></td><td>App developers</td><td>gRPC-specific routing rules</td></tr>
+<tr><td><strong>TCPRoute / UDPRoute / TLSRoute</strong></td><td>App developers</td><td>L4 routing for non-HTTP protocols</td></tr>
+</table>
+
+<h3>Ingress vs Gateway API - Side by Side</h3>
+<pre><code># Ingress (old way)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: app.example.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-svc
+            port:
+              number: 80
+---
+# Gateway API (new way)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app
+spec:
+  parentRefs:
+  - name: my-gateway
+  hostnames:
+  - app.example.com
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    backendRefs:
+    - name: api-svc
+      port: 80</code></pre>
+
+<h3>ingress2gateway Tool</h3>
+<p>SIG-Network shipped <strong>ingress2gateway v1.0</strong> in March 2026 - a migration tool that reads existing Ingress resources and converts them to Gateway + HTTPRoute resources. It supports ingress-nginx annotations and provides warnings for untranslatable configurations.</p>
+<div class="hands-on">
+<h4>🛠️ Try it yourself</h4>
+<pre><code># Install ingress2gateway
+go install github.com/kubernetes-sigs/ingress2gateway@latest
+
+# Convert existing Ingress resources
+ingress2gateway print --providers ingress-nginx \
+  --input-file my-ingress.yaml
+
+# Or convert from live cluster
+kubectl get ingress -A -o yaml | ingress2gateway print --providers ingress-nginx</code></pre>
+</div>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>Role-oriented design:</strong> Platform team manages GatewayClass, infra ops manages Gateway, app devs manage Routes</li>
+<li><strong>Type-safe CRDs:</strong> Schema validation catches errors at apply time, not at runtime</li>
+<li><strong>Portable:</strong> Same HTTPRoute works across different implementations (AWS LBC, Envoy Gateway, Cilium, Istio)</li>
+<li><strong>Conformance profiles:</strong> Implementations declare which features they support via conformance reports</li>
+<li><strong>ingress2gateway:</strong> Official SIG-Network tool for automated Ingress-to-Gateway conversion</li>
+<li><strong>Side-by-side deployment:</strong> You can run Gateway API alongside existing Ingress - they get different IPs</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="link-type">DOCS</span><a href="https://gateway-api.sigs.k8s.io/concepts/api-overview/" target="_blank">Gateway API: API Overview (official)</a></li>
+<li><span class="link-type">DOCS</span><a href="https://gateway-api.sigs.k8s.io/guides/getting-started/migrating-from-ingress-nginx/" target="_blank">Gateway API: Migrating from Ingress-NGINX</a></li>
+<li><span class="link-type">DOCS</span><a href="https://gateway-api.sigs.k8s.io/guides/getting-started/migrating-from-ingress/" target="_blank">Gateway API: General Ingress Migration Guide</a></li>
+<li><span class="link-type">BLOG</span><a href="https://kubernetes.io/blog/2026/03/20/ingress2gateway-1-0-release/" target="_blank">Kubernetes Blog: Announcing ingress2gateway 1.0</a></li>
+<li><span class="link-type">GITHUB</span><a href="https://github.com/kubernetes-sigs/ingress2gateway" target="_blank">ingress2gateway GitHub Repository</a></li>
+<li><span class="link-type">BLOG</span><a href="https://www.kodekloud.com/blog/gateway-api-in-kubernetes-explained/" target="_blank">KodeKloud: Gateway API in Kubernetes Explained</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<p style="font-size:.85rem;margin-bottom:8px">Recommended video resources:</p>
+<ul style="list-style:none;padding:0">
+<li style="margin:6px 0"><a href="https://www.classcentral.com/course/youtube-gateway-api-explained-the-future-of-kubernetes-networking-441634" target="_blank">🎬 KodeKloud: Gateway API Explained (45 min, hands-on demo)</a></li>
+<li style="margin:6px 0"><a href="https://www.classcentral.com/course/youtube-ingress-nginx-is-retiring-migrate-to-gateway-api-now-full-demo-507653" target="_blank">🎬 Kubesimplify: Ingress-NGINX is Retiring - Migrate to Gateway API NOW (12 min demo)</a></li>
+<li style="margin:6px 0"><a href="https://www.classcentral.com/course/youtube-ingress2gateway-migrating-from-ingress-to-gateway-api-311060" target="_blank">🎬 CNCF: Migrating from Ingress to Gateway API (conference talk)</a></li>
+<li style="margin:6px 0"><a href="https://www.solo.io/resources/video/migrating-from-ingress-to-gateway-api" target="_blank">🎬 Solo.io: Migrating from Ingress to Gateway API with kgateway</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m6">
+<h2>6. AWS LBC v3 + Gateway API on EKS</h2>
+<p>AWS Load Balancer Controller v3.0 added <strong>GA support for Kubernetes Gateway API</strong>. This means you can use the same controller for both Ingress resources (ALB) and Gateway API resources (ALB + NLB), providing a smooth migration path.</p>
+
+<h3>How it works on EKS</h3>
+<p>AWS LBC reconciles Gateway API objects and maps them to AWS load balancers:</p>
+<ul style="padding-left:20px;margin:8px 0">
+<li><strong>L7 routes</strong> (HTTPRoute, GRPCRoute) → provisions an <strong>ALB</strong></li>
+<li><strong>L4 routes</strong> (TCPRoute, UDPRoute, TLSRoute) → provisions an <strong>NLB</strong></li>
+<li>Automatic TLS certificate discovery for both L4 and L7</li>
+<li>Eliminates annotation-based config in favor of typed CRDs</li>
+</ul>
+
+<h3>Example: HTTPRoute with AWS LBC</h3>
+<pre><code># GatewayClass (platform team)
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: aws-alb
+spec:
+  controllerName: gateway.k8s.aws/alb
+---
+# Gateway (infra ops)
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: my-gateway
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+  - name: http
+    port: 80
+    protocol: HTTP
+  - name: https
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: my-cert  # auto-discovered from ACM
+---
+# HTTPRoute (app developer)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app
+spec:
+  parentRefs:
+  - name: my-gateway
+  hostnames:
+  - app.example.com
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    backendRefs:
+    - name: api-svc
+      port: 80</code></pre>
+
+<h3>AWS LBC + VPC Lattice: Complementary Use Cases</h3>
+<table>
+<tr><th>Use Case</th><th>Controller</th><th>Data Plane</th></tr>
+<tr><td>Internet ingress, WAF, ACM, ALB features</td><td>AWS LBC</td><td>ALB / NLB</td></tr>
+<tr><td>Cross-cluster communication</td><td>VPC Lattice Gateway API Controller</td><td>VPC Lattice</td></tr>
+<tr><td>Cross-VPC / cross-account</td><td>VPC Lattice Gateway API Controller</td><td>VPC Lattice</td></tr>
+<tr><td>Service-to-service auth</td><td>VPC Lattice Gateway API Controller</td><td>VPC Lattice</td></tr>
+</table>
+<p>Both controllers can run simultaneously using the same Gateway API specification - just different GatewayClass names.</p>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>controllerName:</strong> <code>gateway.k8s.aws/alb</code> for AWS LBC, <code>application-networking.k8s.aws/gateway-api-controller</code> for VPC Lattice</li>
+<li><strong>ListenerRuleConfiguration:</strong> AWS LBC CRD for advanced ALB listener rules (custom routing beyond HTTPRoute)</li>
+<li><strong>Recommended migration path:</strong> Ingress NGINX → AWS LBC (Ingress) → AWS LBC (Gateway API)</li>
+<li><strong>EKS Auto Mode:</strong> Supports AWS LBC natively for Ingress. Gateway API support in Auto Mode is not yet available</li>
+<li><strong>QUIC/HTTP3:</strong> AWS LBC supports QUIC protocol on NLBs via Gateway API</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="link-type">BLOG</span><a href="https://aws.amazon.com/blogs/networking-and-content-delivery/aws-load-balancer-controller-adds-general-availability-support-for-kubernetes-gateway-api/" target="_blank">AWS: LBC adds GA support for Gateway API</a></li>
+<li><span class="link-type">BLOG</span><a href="https://aws.amazon.com/blogs/networking-and-content-delivery/streamline-your-amazon-eks-deployments-with-gateway-api-support-for-aws-load-balancer-controller-and-amazon-vpc-lattice/" target="_blank">AWS: Streamline EKS with Gateway API (LBC + VPC Lattice)</a></li>
+<li><span class="link-type">DOCS</span><a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/gateway/" target="_blank">AWS LBC: Gateway API Documentation</a></li>
+<li><span class="link-type">BLOG</span><a href="https://www.repost.aws/articles/ARLz9nw4xwQxeccccvgez8cQ/implementing-kubernetes-gateway-api-using-aws-load-balancer-controller-part-i-l4-nlbgatewayapi" target="_blank">re:Post: Implementing Gateway API with AWS LBC - Part I (L4/NLB)</a></li>
+<li><span class="link-type">BLOG</span><a href="https://repost.aws/de/articles/ARwuFtb4dlQm-6PhHYH8zezQ/implementing-kubernetes-gateway-api-using-aws-load-balancer-controller-part-ii-l7-albgatewayapi" target="_blank">re:Post: Implementing Gateway API with AWS LBC - Part II (L7/ALB)</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<p style="font-size:.85rem;opacity:.7">The re:Post articles above include detailed CLI outputs and step-by-step walkthroughs with Pod Identity setup.</p>
+</div>
+</div>
+</section>
+
+<section class="module" id="m7">
+<h2>7. Real-World Migration Scenarios and Gotchas</h2>
+<p>Based on real customer engagements and field experience, here are the patterns, pitfalls, and production-proven strategies for NGINX Ingress migration.</p>
+
+<h3>Scenario A: Standard EKS Cluster (&lt;100 services)</h3>
+<p><strong>Pattern:</strong> NGINX Ingress → AWS LBC via Ingress resources</p>
+<ul style="padding-left:20px;margin:8px 0">
+<li>Install AWS LBC alongside existing ingress-nginx</li>
+<li>Create new Ingress resources with <code>ingressClassName: alb</code></li>
+<li>Test with non-production workloads first</li>
+<li>Gradually shift traffic via DNS (weighted routing in Route 53)</li>
+<li>Remove ingress-nginx after full validation</li>
+</ul>
+
+<h3>Scenario B: High-Density Cluster (100+ services, PrivateLink)</h3>
+<p><strong>Pattern:</strong> NGINX Ingress → Envoy Gateway (in-cluster L7 proxy)</p>
+<div class="warning-box">
+<strong>Real case (large-scale platform):</strong> 200+ apps per cluster, each in its own namespace with path-based routing behind PrivateLink. ALB was validated end-to-end (URL rewrite, TLS, IngressGroup, PrivateLink chain) but hit the <strong>100 Target Group limit</strong> as a production blocker. Envoy Gateway was the recommended solution.
+</div>
+<pre><code># Architecture: NLB + PrivateLink stays, replace what's behind it
+NLB (PrivateLink) → Envoy Gateway pods (in-cluster L7) → per-app pods</code></pre>
+
+<h3>Scenario C: F5 NGINX Migration (complex configs)</h3>
+<p><strong>Pattern:</strong> Community NGINX → F5 NGINX Ingress Controller</p>
+<p>F5 offers two migration paths:</p>
+<ol style="padding-left:20px;margin:8px 0">
+<li><strong>Via NGINX Ingress Resources</strong> (VirtualServer, VirtualServerRoute CRDs) - optimal for production, broader capabilities</li>
+<li><strong>Via standard Kubernetes Ingress Resource</strong> - simpler, keeps all config in Ingress objects</li>
+</ol>
+
+<h3>Technical Gotchas (from field)</h3>
+<div class="key-concepts">
+<h4>⚠️ Watch Out For</h4>
+<ul>
+<li><strong>Annotation <code>aws-load-balancer-type: external</code>:</strong> Changing this may trigger NLB recreation depending on which controller manages the Service (in-tree vs AWS LBC). Validate which controller is active BEFORE changing</li>
+<li><strong>Finalizer removal:</strong> Sensitive operation during migration. Always check <code>kubectl get svc NAME -o jsonpath='{.metadata.finalizers}'</code> before removing</li>
+<li><strong>ALB 100 TG limit:</strong> Hard limit, not adjustable. If you have 100+ services with path-based routing, ALB won't work. Plan for Envoy Gateway or F5 NGINX</li>
+<li><strong>VPC Lattice limits:</strong> Default 10 rules/listener, 10 TGs/service - also doesn't fit high-density scenarios</li>
+<li><strong>Pod Readiness Gates:</strong> Enable for AWS LBC to avoid 5xx during deployments (pods registered before ready)</li>
+<li><strong>Deregistration delay:</strong> Reduce from 300s to 30-60s for stateless microservices</li>
+<li><strong>Rollback strategy:</strong> Keep old NodeGroup and old TargetGroup in the NLB listener until 100% traffic is validated. Rollback = revert listener weight</li>
+</ul>
+</div>
+
+<h3>Zero-Downtime Migration Strategy</h3>
+<ol style="padding-left:20px;margin:8px 0">
+<li><strong>Side-by-side deployment:</strong> Install new controller alongside old one (different external IPs)</li>
+<li><strong>Progressive validation:</strong> Shift dev traffic first, then staging, then production</li>
+<li><strong>DNS cutover:</strong> Use Route 53 weighted routing to gradually shift traffic</li>
+<li><strong>Shared-IP strategy:</strong> If both controllers can share the same LB IP, DNS cutover is seamless</li>
+<li><strong>Monitoring:</strong> Watch error rates, latency, and connection counts during transition</li>
+</ol>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+
+<li><span class="link-type">BLOG</span><a href="https://engineering.01cloud.com/2026/03/26/migrating-from-kubernetes-ingress-to-gateway-api-a-zero-downtime-production-success-story/" target="_blank">01Cloud: Zero-Downtime Production Migration to Gateway API</a></li>
+<li><span class="link-type">BLOG</span><a href="https://www.qovery.com/blog/migrating-from-nginx-ingress-to-envoy-gateway-gateway-api-behind-the-scenes" target="_blank">Qovery: Migrating from NGINX to Envoy Gateway (behind the scenes)</a></li>
+<li><span class="link-type">DOCS</span><a href="https://gateway.envoyproxy.io/docs/install/migrating-to-envoy/" target="_blank">Envoy Gateway: Migration Guide</a></li>
+<li><span class="link-type">DOCS</span><a href="https://docs.nginx.com/nginx-gateway-fabric/install/ingress-to-gateway/" target="_blank">NGINX Gateway Fabric: Ingress to Gateway Migration</a></li>
+<li><span class="link-type">BLOG</span><a href="https://www.datadoghq.com/blog/migrate-to-gateway-api/" target="_blank">Datadog: Ingress NGINX is EOL - Practical Guide to Gateway API</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul style="list-style:none;padding:0">
+<li style="margin:6px 0"><a href="https://www.solo.io/resources/video/migrating-from-ingress-to-gateway-api" target="_blank">🎬 Solo.io: Migrating from Ingress to Gateway API (practical demo)</a></li>
+<li style="margin:6px 0"><a href="https://www.classcentral.com/course/youtube-ingress-nginx-is-retiring-migrate-to-gateway-api-now-full-demo-507653" target="_blank">🎬 Kubesimplify: Full Migration Demo with ingress2gateway</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="labs">
+<h2>🧪 Hands-On Labs</h2>
+<p>Labs detalhados no portal dedicado com cenario real de migracao:</p>
+<p style="text-align:center;margin:24px 0">
+<a href="nginx-migration-labs.html" style="display:inline-block;background:var(--accent);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:1.1rem">
+🧪 Abrir Labs Portal (migration scenario, L100-L300)
+</a>
+</p>
+</section>
+
+</div>
+<footer>
+<p>NGINX Ingress Migration Training Portal - Generated May 2, 2026</p>
+<p>Sources: AWS Blog, F5 Docs, Kubernetes.io, Gateway API SIG-Network, field notes</p>
+<p>7 modules · 30+ verified links</p>
+</footer>
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);
+  localStorage.setItem('nginx-migration-theme',t);
+}
+(function(){
+  const s=localStorage.getItem('nginx-migration-theme');
+  if(s)document.documentElement.setAttribute('data-theme',s);
+})();
+</script>

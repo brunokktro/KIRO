@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Learning Ecosystem - Skill Integration Map</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#1a1a2e;display:flex;flex-direction:column;align-items:center;padding:32px 16px}
+h1{font-size:1.6rem;margin-bottom:4px;color:#232F3E}
+.subtitle{font-size:.95rem;color:#555;margin-bottom:24px}
+.mermaid{max-width:1100px;width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;justify-content:center}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:.82rem;color:#333}
+.legend-dot{width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.15)}
+footer{margin-top:32px;font-size:.8rem;color:#888}
+</style>
+</head>
+<body>
+<h1>🧠 Learning Ecosystem - Skill Integration Map</h1>
+<p class="subtitle">Fluxo completo: curadoria → geração → prática → validação</p>
+
+<div class="mermaid">
+flowchart TB
+    TRIGGER(("🧠 User wants&lt;br/&gt;to study something"))
+
+    subgraph SOURCES["📥 Fontes de Conteúdo"]
+        direction LR
+        FF["🦊 Firefox Bookmarks"]
+        TABS["🗂️ Browser Open Tabs"]
+        ONENOTE["📝 OneNote Notes"]
+        ONEDRIVE["📂 OneDrive Decks/eBooks"]
+    end
+
+    subgraph CURATION["🔍 Curadoria &amp; Priorização"]
+        BC["🤖 bookmark-curator&lt;br/&gt;&lt;i&gt;agent autônomo&lt;/i&gt;"]
+        LC["📚 learning-curator&lt;br/&gt;&lt;i&gt;skill interativa&lt;/i&gt;"]
+        DB[("📦 bookmarks-data.json&lt;br/&gt;&lt;i&gt;unified link base&lt;/i&gt;")]
+    end
+
+    subgraph GENERATION["🏗️ Geração de Conteúdo"]
+        TM["📖 training-mentor&lt;br/&gt;&lt;i&gt;skill&lt;/i&gt;"]
+        subgraph PORTALS["Portals Gerados"]
+            direction LR
+            THEORY["📚 Theory Portal"]
+            LABS["🧪 Labs Portal"]
+            HUB["🗺️ Hub Page"]
+        end
+        TRACKER[("📊 link-tracker.json")]
+    end
+
+    subgraph PLANNING["📅 Planejamento"]
+        PP["⏰ priority-planner&lt;br/&gt;&lt;i&gt;skill&lt;/i&gt;"]
+        CAL["📆 Calendar Time Box"]
+    end
+
+    subgraph PRACTICE["🎯 Prática &amp; Validação"]
+        CM["🔧 challenge-mentor&lt;br/&gt;&lt;i&gt;skill&lt;/i&gt;"]
+        PROGRESS[("📈 progress.md")]
+    end
+
+    TRIGGER --> LC
+    TRIGGER --> TM
+
+    FF --> BC
+    TABS --> LC
+    BC --> DB
+    LC --> DB
+
+    ONENOTE --> TM
+    ONEDRIVE --> TM
+    DB --> TM
+
+    TM --> THEORY
+    TM --> LABS
+    TM --> HUB
+    TM --> TRACKER
+
+    LABS -->|"✅ Completou labs guiados"| CM
+    CM --> PROGRESS
+
+    PP -->|"📋 Prioriza tópicos"| LC
+    PP -->|"⏰ Cria time box"| CAL
+    CAL -->|"⏱️ Após time box:&lt;br/&gt;consumiu o portal?"| TRACKER
+
+    CM -->|"🔄 Quer revisar teoria?"| THEORY
+    LC -->|"🎯 Challenge Ready?"| CM
+
+    classDef trigger fill:#FF9800,stroke:#E65100,color:#fff,stroke-width:3px
+    classDef source fill:#E3F2FD,stroke:#1565C0,color:#1a1a2e
+    classDef curation fill:#F3E5F5,stroke:#7B1FA2,color:#1a1a2e
+    classDef generation fill:#E8F5E9,stroke:#2E7D32,color:#1a1a2e
+    classDef portal fill:#C8E6C9,stroke:#388E3C,color:#1a1a2e
+    classDef planning fill:#FFF3E0,stroke:#E65100,color:#1a1a2e
+    classDef practice fill:#FCE4EC,stroke:#C62828,color:#1a1a2e
+    classDef data fill:#ECEFF1,stroke:#546E7A,color:#1a1a2e
+
+    class TRIGGER trigger
+    class FF,TABS,ONENOTE,ONEDRIVE source
+    class BC,LC curation
+    class TM generation
+    class THEORY,LABS,HUB portal
+    class PP,CAL planning
+    class CM practice
+    class DB,TRACKER,PROGRESS data
+</div>
+
+<div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div>Trigger</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E3F2FD"></div>Fontes</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#F3E5F5"></div>Curadoria</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E8F5E9"></div>Geração</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FFF3E0"></div>Planejamento</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FCE4EC"></div>Prática</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ECEFF1"></div>Data Store</div>
+</div>
+
+<footer>Learning Ecosystem - May 2, 2026 - Skills: learning-curator, training-mentor, challenge-mentor, priority-planner, bookmark-curator</footer>
+
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+        primaryColor: '#E8F5E9',
+        primaryTextColor: '#1a1a2e',
+        primaryBorderColor: '#2E7D32',
+        lineColor: '#546E7A',
+        secondaryColor: '#F3E5F5',
+        tertiaryColor: '#FFF3E0',
+        fontSize: '14px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+    },
+    flowchart: {
+        curve: 'basis',
+        padding: 20,
+        nodeSpacing: 50,
+        rankSpacing: 60,
+        htmlLabels: true,
+        useMaxWidth: true
+    }
+});
+</script>
+</body>
+</html>

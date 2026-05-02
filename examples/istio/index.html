@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Istio Service Mesh on EKS - Training Hub</title>
+<style>
+:root{--bg:#f5f5f5;--card-bg:#fff;--text:#1a1a2e;--text-muted:#555;--accent:#0073BB;--border:#dde1e6;--header-bg:#232F3E;--shadow:rgba(0,0,0,.06);--trail-line:#dde1e6;--trail-dot:#0073BB}
+[data-theme="dark"]{--bg:#1a1a2e;--card-bg:#16213e;--text:#e0e0e0;--text-muted:#aaa;--accent:#4fc3f7;--border:#2a2a4a;--header-bg:#0f3460;--shadow:rgba(0,0,0,.3);--trail-line:#2a2a4a;--trail-dot:#4fc3f7}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:720px;margin:0 auto;padding:0 24px}
+header{background:var(--header-bg);color:#fff;padding:48px 0 36px;text-align:center}
+header h1{font-size:2rem;margin-bottom:8px}
+header p{opacity:.85;font-size:1.05rem;max-width:600px;margin:0 auto}
+.meta{margin-top:12px;font-size:.85rem;opacity:.65}
+.theme-toggle{position:fixed;top:1rem;right:1rem;z-index:100;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow)}
+.trail{position:relative;padding:32px 0 16px;margin-left:40px}
+.trail::before{content:'';position:absolute;left:20px;top:0;bottom:0;width:3px;background:var(--trail-line);border-radius:2px}
+.trail-item{position:relative;padding-left:48px;margin-bottom:28px}
+.trail-num{position:absolute;left:6px;top:4px;width:32px;height:32px;border-radius:50%;background:var(--trail-dot);color:#fff;font-size:.9rem;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:1;box-shadow:0 2px 6px var(--shadow)}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:28px;box-shadow:0 2px 8px var(--shadow);transition:box-shadow .2s}
+.card:hover{box-shadow:0 4px 16px var(--shadow)}
+.card h2{font-size:1.3rem;margin-bottom:8px}
+.card h2 a{color:var(--accent)}
+.card .desc{color:var(--text-muted);font-size:.95rem;margin-bottom:12px}
+.card .info{display:flex;gap:12px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}
+.card .info span{background:var(--bg);padding:2px 10px;border-radius:6px;border:1px solid var(--border)}
+.badge-todo{background:#e0e0e0!important;color:#555!important}
+.badge-progress{background:#FFF3CD!important;color:#856404!important}
+.badge-done{background:#D4EDDA!important;color:#155724!important}
+footer{text-align:center;padding:32px;font-size:.85rem;opacity:.6;margin-top:32px}
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌓</button>
+<header>
+<div class="container">
+<h1>🔷 Istio Service Mesh on EKS</h1>
+<p>Service Mesh completo: Sidecar Mode, Ambient Mode, Traffic Management, Security, Observability e troubleshooting no EKS</p>
+<div class="meta">Generated May 2, 2026 · 3 portals · 11 modules + 9 labs</div>
+</div>
+</header>
+<div class="container">
+<div class="trail">
+
+<div class="trail-item">
+<div class="trail-num">1</div>
+<div class="card">
+<h2>📚 <a href="istio-core-training.html">Istio Core - Sidecar Mode</a></h2>
+<div class="desc">Fundamentos de Service Mesh, arquitetura Istio (Istiod, Envoy sidecar), Traffic Management, Network Resiliency, Security/Zero Trust e Observability stack completo.</div>
+<div class="info">
+<span>6 modules</span>
+<span>25+ links</span>
+<span class="badge-todo">Not started</span>
+</div>
+</div>
+</div>
+
+<div class="trail-item">
+<div class="trail-num">2</div>
+<div class="card">
+<h2>🚀 <a href="istio-ambient-training.html">Ambient Mode + EKS Deep Dive</a></h2>
+<div class="desc">Ambient Mode (ztunnel + waypoint), Sidecar vs Ambient decision framework, Istio on EKS (VPC CNI, ALB, Karpenter), EKS Auto Mode status, e advanced patterns (multi-cluster, SPIFFE, AZ resilience).</div>
+<div class="info">
+<span>5 modules</span>
+<span>20+ links</span>
+<span class="badge-todo">Not started</span>
+</div>
+</div>
+</div>
+
+<div class="trail-item">
+<div class="trail-num">3</div>
+<div class="card">
+<h2>🧪 <a href="istio-labs.html">Labs Portal</a></h2>
+<div class="desc">Hands-on completo: provisionar EKS + Istio, BookInfo deploy, traffic management, resiliency, mTLS, observability, ambient mode install, sidecar-to-ambient migration, e troubleshooting scenarios.</div>
+<div class="info">
+<span>9 labs</span>
+<span>L100-L300</span>
+<span class="badge-todo">Not started</span>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+<footer>
+<p>Istio Service Mesh on EKS - Training Hub - Generated May 2, 2026</p>
+<p>Based on: <a href="https://istio.io/latest/docs/" target="_blank">Istio Docs</a> · <a href="https://aws.amazon.com/blogs/opensource/getting-started-with-istio-on-amazon-eks/" target="_blank">AWS Blog</a> · <a href="https://github.com/aws-samples/istio-on-eks" target="_blank">aws-samples/istio-on-eks</a> · field notes</p>
+</footer>
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);
+  localStorage.setItem('istio-hub-theme',t);
+}
+(function(){
+  const s=localStorage.getItem('istio-hub-theme');
+  if(s)document.documentElement.setAttribute('data-theme',s);
+})();
+</script>
+</body>
+</html>

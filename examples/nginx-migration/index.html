@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NGINX Ingress Migration - Training Hub</title>
+<style>
+:root{--bg:#f5f5f5;--card-bg:#fff;--text:#1a1a2e;--text-muted:#555;--accent:#0073BB;--border:#dde1e6;--header-bg:#232F3E;--shadow:rgba(0,0,0,.06)}
+[data-theme="dark"]{--bg:#1a1a2e;--card-bg:#16213e;--text:#e0e0e0;--text-muted:#aaa;--accent:#4fc3f7;--border:#2a2a4a;--header-bg:#0f3460;--shadow:rgba(0,0,0,.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:720px;margin:0 auto;padding:0 24px}
+header{background:var(--header-bg);color:#fff;padding:48px 0 36px;text-align:center}
+header h1{font-size:2rem;margin-bottom:8px}
+header p{opacity:.85;font-size:1.05rem;max-width:600px;margin:0 auto}
+.meta{margin-top:12px;font-size:.85rem;opacity:.65}
+.theme-toggle{position:fixed;top:1rem;right:1rem;z-index:100;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow)}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:28px;margin:20px 0;box-shadow:0 2px 8px var(--shadow);transition:box-shadow .2s}
+.card:hover{box-shadow:0 4px 16px var(--shadow)}
+.card h2{font-size:1.3rem;margin-bottom:8px}
+.card h2 a{color:var(--accent)}
+.card .desc{color:var(--text-muted);font-size:.95rem;margin-bottom:12px}
+.card .info{display:flex;gap:12px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}
+.card .info span{background:var(--bg);padding:2px 10px;border-radius:6px;border:1px solid var(--border)}
+.badge-todo{background:#e0e0e0!important;color:#555!important}
+.badge-progress{background:#FFF3CD!important;color:#856404!important}
+.badge-done{background:#D4EDDA!important;color:#155724!important}
+footer{text-align:center;padding:32px;font-size:.85rem;opacity:.6;margin-top:32px}
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌓</button>
+<header>
+<div class="container">
+<h1>🔄 NGINX Ingress Migration</h1>
+<p>Da aposentadoria do ingress-nginx ao futuro com AWS LBC e Gateway API</p>
+<div class="meta">Generated May 2, 2026 · 2 portals · 7 modules + 5 labs</div>
+</div>
+</header>
+<div class="container" style="padding-top:32px;padding-bottom:32px">
+
+<div class="card">
+<h2>📚 <a href="nginx-migration-training.html">Theory Portal</a></h2>
+<div class="desc">Contexto da aposentadoria, decision framework, AWS LBC architecture, annotation mapping, Gateway API fundamentals, AWS LBC v3 + Gateway API, e cenarios reais de migracao com gotchas de campo.</div>
+<div class="info">
+<span>7 modules</span>
+<span>30+ links</span>
+<span class="badge-todo">Not started</span>
+</div>
+</div>
+
+<div class="card">
+<h2>🧪 <a href="nginx-migration-labs.html">Labs Portal</a></h2>
+<div class="desc">Cenario real de migracao: audit ingress-nginx, migrar para AWS LBC (URI rewrite + TLS), converter para Gateway API com ingress2gateway, e full side-by-side zero-downtime cutover.</div>
+<div class="info">
+<span>5 labs</span>
+<span>L100-L300</span>
+<span class="badge-todo">Not started</span>
+</div>
+</div>
+
+</div>
+<footer>
+<p>NGINX Ingress Migration Training Hub - Generated May 2, 2026</p>
+<p>Based on: <a href="https://aws.amazon.com/blogs/networking-and-content-delivery/navigating-the-nginx-ingress-retirement-a-practical-guide-to-migration-on-aws/" target="_blank">AWS Blog</a> · <a href="https://www.f5.com/company/blog/nginx/migrating-from-community-ingress-controller-to-f5-nginx-ingress-controller" target="_blank">F5 Blog</a> · field notes</p>
+</footer>
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);
+  localStorage.setItem('nginx-hub-theme',t);
+}
+(function(){
+  const s=localStorage.getItem('nginx-hub-theme');
+  if(s)document.documentElement.setAttribute('data-theme',s);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NGINX Ingress Migration - Labs Portal</title>
+<style>
+:root{
+  --bg:#fff;--text:#1a1a2e;--card-bg:#f8f9fa;--border:#e0e0e0;--accent:#0073BB;
+  --header-bg:#232F3E;--code-bg:#1e1e2e;--code-text:#cdd6f4;--key-bg:#e8f4fd;
+  --key-border:#b3d9f2;--shadow:rgba(0,0,0,.08);--success:#2e7d32;
+  --warn-bg:#fff3cd;--warn-text:#856404;--ai-bg:#f8d7da;--ai-text:#721c24;
+}
+[data-theme="dark"]{
+  --bg:#1a1a2e;--text:#e0e0e0;--card-bg:#16213e;--border:#2a2a4a;--accent:#4fc3f7;
+  --header-bg:#0f3460;--code-bg:#11111b;--code-text:#cdd6f4;--key-bg:#1a2744;
+  --key-border:#2a4a6a;--shadow:rgba(0,0,0,.3);--success:#66bb6a;
+  --warn-bg:#3b2e00;--warn-text:#FEC448;--ai-bg:#2d1b1b;--ai-text:#f8d7da;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:960px;margin:0 auto;padding:0 24px}
+header{background:var(--header-bg);color:#fff;padding:48px 0 36px}
+header h1{font-size:2rem;margin-bottom:8px}
+header p{opacity:.85;font-size:1.05rem}
+.meta{margin-top:12px;font-size:.85rem;opacity:.65}
+.theme-toggle{position:fixed;top:1rem;right:1rem;z-index:100;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow)}
+.toc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px 32px;margin:32px 0}
+.toc h2{font-size:1.2rem;margin-bottom:12px}
+.toc ol{padding-left:20px}.toc li{margin:6px 0}
+.badge-level{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.75rem;font-weight:700;margin-right:8px;color:#fff}
+.l100{background:#4caf50}.l200{background:#ff9800}.l300{background:#f57c00}.l400{background:#d32f2f}
+.badge-ai{background:var(--ai-bg);color:var(--ai-text);padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600;display:inline-block;margin-bottom:12px}
+.badge-real{background:#d4edda;color:#155724;padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600;display:inline-block;margin-bottom:12px}
+.lab{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:32px;margin:24px 0;box-shadow:0 2px 8px var(--shadow)}
+.lab h2{font-size:1.5rem;margin-bottom:16px;color:var(--accent);border-bottom:2px solid var(--border);padding-bottom:8px}
+.lab h3{margin:20px 0 8px;font-size:1.1rem}
+.objective{border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--key-bg);border-radius:0 8px 8px 0}
+.prereqs{border-left:4px solid #ff9800;padding:12px 16px;margin:16px 0;background:var(--warn-bg);border-radius:0 8px 8px 0;color:var(--warn-text)}
+.validation{border-left:4px solid var(--success);padding:12px 16px;margin:16px 0;background:#e8f5e9;border-radius:0 8px 8px 0}
+[data-theme="dark"] .validation{background:#1b3a1b}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:.85rem;font-weight:700;margin-right:8px}
+pre{background:var(--code-bg);color:var(--code-text);border-radius:8px;padding:16px;overflow-x:auto;font-size:.88rem;line-height:1.5;margin:12px 0}
+code{font-family:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace}
+.ref-links{margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.ref-links h4{margin-bottom:8px;font-size:.9rem}
+.ref-links a{display:block;margin:4px 0;font-size:.85rem}
+footer{text-align:center;padding:32px;font-size:.85rem;opacity:.6;margin-top:32px}
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌓</button>
+<header>
+<div class="container">
+<h1>🧪 NGINX Ingress Migration - Labs</h1>
+<p>Cenario real de migracao: NGINX Ingress → AWS LBC → Gateway API no EKS</p>
+<div class="meta">Generated May 2, 2026 · 5 labs · L100-L300 · Based on AWS blog walkthrough + field patterns</div>
+</div>
+</header>
+<div class="container">
+<nav class="toc">
+<h2>📋 Labs Index</h2>
+<ol start="0">
+<li><span class="badge-level l100">L100</span><a href="#lab0">Deploy the Legacy Stack (ingress-nginx + sample app)</a></li>
+<li><span class="badge-level l100">L100</span><a href="#lab1">Detect and Audit ingress-nginx in Your Cluster</a></li>
+<li><span class="badge-level l200">L200</span><a href="#lab2">Migrate Ingress from NGINX to AWS LBC (URI Rewrite + TLS)</a></li>
+<li><span class="badge-level l200">L200</span><a href="#lab3">Convert Ingress to Gateway API with ingress2gateway</a></li>
+<li><span class="badge-level l300">L300</span><a href="#lab4">Full Migration Scenario: Side-by-Side with Zero-Downtime Cutover</a></li>
+</ol>
+</nav>
+
+<section class="lab" id="lab0">
+<span class="badge-level l100">L100</span>
+<span class="badge-real">✅ Based on EKS Blueprints Terraform Pattern</span>
+<h2>Lab 0: Provision the Legacy Environment (EKS + ingress-nginx + sample app)</h2>
+
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Deploy a complete legacy environment via Terraform: EKS cluster, managed node group, AWS LBC, ingress-nginx controller, and a multi-service sample application with NGINX annotations (URI rewrite, host routing, TLS). After <code>terraform apply</code>, the environment is fully functional and ready for migration labs.</p>
+</div>
+
+<div class="prereqs">
+<h4>⚡ Prerequisites</h4>
+<ul>
+<li>AWS CLI configured with a named profile (e.g., <code>my-aws-profile</code>)</li>
+<li>Terraform 1.5+ installed</li>
+<li>kubectl installed</li>
+<li>~15 minutes for provisioning</li>
+</ul>
+</div>
+
+<h3><span class="step-num">1</span>Clone the Terraform configuration</h3>
+<pre># Clone the lab infrastructure
+git clone https://github.com/aws-ia/terraform-aws-eks-blueprints.git
+cd terraform-aws-eks-blueprints/patterns/nginx
+
+# This pattern provisions:
+# - VPC with public/private subnets
+# - EKS cluster with managed node group (m5.large x2)
+# - AWS Load Balancer Controller
+# - ingress-nginx via Helm (with NLB, internet-facing)
+# - All required IAM roles and policies
+#
+# Reference: https://aws-ia.github.io/terraform-aws-eks-blueprints/patterns/network/private-public-ingress/</pre>
+
+<h3><span class="step-num">2</span>Initialize and apply Terraform</h3>
+<pre># Set your AWS profile
+export AWS_PROFILE=my-aws-profile
+export AWS_REGION=us-east-1
+
+# Initialize Terraform
+terraform init
+
+# Review the plan (~40 resources)
+terraform plan
+
+# Apply (takes ~12-15 minutes)
+terraform apply -auto-approve</pre>
+
+<h3><span class="step-num">3</span>Configure kubectl</h3>
+<pre># Get the cluster name from Terraform output
+CLUSTER_NAME=$(terraform output -raw cluster_name 2>/dev/null || echo "nginx-migration-lab")
+
+# Update kubeconfig
+aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION --profile $AWS_PROFILE
+
+# Verify cluster access
+kubectl get nodes
+kubectl get pods -n ingress-nginx</pre>
+
+<h3><span class="step-num">4</span>Deploy the legacy sample application</h3>
+<pre># Deploy 3 backend services to simulate a real legacy app
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-main
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-main
+  template:
+    metadata:
+      labels:
+        app: app-main
+    spec:
+      containers:
+      - name: echo
+        image: hashicorp/http-echo
+        args: ["-text=Hello from app-main (root)"]
+        ports:
+        - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-main
+spec:
+  selector:
+    app: app-main
+  ports:
+  - port: 80
+    targetPort: 5678
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-api
+  template:
+    metadata:
+      labels:
+        app: app-api
+    spec:
+      containers:
+      - name: echo
+        image: hashicorp/http-echo
+        args: ["-text=Hello from app-api (rewritten)"]
+        ports:
+        - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-api
+spec:
+  selector:
+    app: app-api
+  ports:
+  - port: 80
+    targetPort: 5678
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-admin
+  template:
+    metadata:
+      labels:
+        app: app-admin
+    spec:
+      containers:
+      - name: echo
+        image: hashicorp/http-echo
+        args: ["-text=Hello from app-admin (admin host)"]
+        ports:
+        - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-admin
+spec:
+  selector:
+    app: app-admin
+  ports:
+  - port: 80
+    targetPort: 5678
+EOF</pre>
+
+<h3><span class="step-num">5</span>Create Ingress with NGINX annotations (the legacy config to migrate)</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: legacy-app
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: app.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-main
+            port:
+              number: 80
+      - path: /api(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: app-api
+            port:
+              number: 80
+  - host: admin.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-admin
+            port:
+              number: 80
+EOF</pre>
+
+<h3><span class="step-num">6</span>Validate the complete legacy environment</h3>
+<pre># Get the NLB address
+NLB=$(kubectl get svc -n ingress-nginx ingress-nginx-controller \
+  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+echo "NLB: $NLB"
+
+# Test root path
+curl -s -H "Host: app.example.com" http://$NLB/
+# Expected: "Hello from app-main (root)"
+
+# Test rewrite: /api/users -> /users on app-api
+curl -s -H "Host: app.example.com" http://$NLB/api/users
+# Expected: "Hello from app-api (rewritten)"
+
+# Test host-based routing
+curl -s -H "Host: admin.example.com" http://$NLB/
+# Expected: "Hello from app-admin (admin host)"
+
+# Verify NGINX controller version
+kubectl get deploy -n ingress-nginx ingress-nginx-controller \
+  -o jsonpath='{.spec.template.spec.containers[0].image}'
+echo
+
+# List NGINX annotations in use (migration inventory)
+kubectl get ingress legacy-app -o json | \
+  jq -r '.metadata.annotations | keys[] | select(contains("nginx"))'</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>EKS cluster is running with 2 nodes</li>
+<li>AWS LBC is installed and healthy</li>
+<li>ingress-nginx controller is running with NLB</li>
+<li>3 backend services are deployed and healthy</li>
+<li>Root path routes to <code>app-main</code></li>
+<li>Rewrite path (<code>/api/users</code>) routes to <code>app-api</code> at <code>/users</code></li>
+<li>Host routing (<code>admin.example.com</code>) routes to <code>app-admin</code></li>
+<li>3 NGINX annotations identified for migration</li>
+</ul>
+</div>
+
+<h3>Cleanup (after all labs)</h3>
+<pre># Delete app resources first
+kubectl delete ingress legacy-app
+kubectl delete deploy app-main app-api app-admin
+kubectl delete svc app-main app-api app-admin
+
+# Destroy infrastructure
+cd terraform-aws-eks-blueprints/patterns/nginx
+terraform destroy -auto-approve</pre>
+
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://aws-ia.github.io/terraform-aws-eks-blueprints/patterns/network/private-public-ingress/" target="_blank">EKS Blueprints: Private/Public Ingress Pattern</a>
+<a href="https://github.com/aws-ia/terraform-aws-eks-blueprints" target="_blank">EKS Blueprints for Terraform (GitHub)</a>
+<a href="https://kubernetes.github.io/ingress-nginx/deploy/" target="_blank">ingress-nginx: Installation Guide</a>
+<a href="https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/" target="_blank">ingress-nginx: Annotations Reference</a>
+</div>
+</section>
+
+<section class="lab" id="lab1">
+<span class="badge-level l100">L100</span>
+<span class="badge-ai">⚠️ AI-Generated - Validate before use</span>
+<h2>Lab 1: Detect and Audit ingress-nginx in Your Cluster</h2>
+
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Identify all ingress-nginx deployments across your clusters, audit the Ingress resources and annotations in use, and generate a migration inventory.</p>
+</div>
+
+<div class="prereqs">
+<h4>⚡ Prerequisites</h4>
+<ul>
+<li>kubectl configured with access to your EKS cluster(s)</li>
+<li>Permissions to list pods, services, and ingress resources across all namespaces</li>
+</ul>
+</div>
+
+<h3><span class="step-num">1</span>Detect ingress-nginx pods</h3>
+<pre># Check all clusters for ingress-nginx
+kubectl get pods --all-namespaces \
+  --selector app.kubernetes.io/name=ingress-nginx
+
+# Get the controller version
+kubectl get deploy -n ingress-nginx \
+  ingress-nginx-controller \
+  -o jsonpath='{.spec.template.spec.containers[0].image}'
+echo</pre>
+
+<h3><span class="step-num">2</span>List all Ingress resources</h3>
+<pre># List all Ingress resources with their class
+kubectl get ingress -A -o custom-columns=\
+'NAMESPACE:.metadata.namespace,NAME:.metadata.name,CLASS:.spec.ingressClassName,HOSTS:.spec.rules[*].host'
+
+# Export full Ingress manifests for analysis
+kubectl get ingress -A -o yaml > all-ingress-resources.yaml</pre>
+
+<h3><span class="step-num">3</span>Audit NGINX-specific annotations</h3>
+<pre># Find all unique NGINX annotations in use
+kubectl get ingress -A -o json | \
+  jq -r '.items[].metadata.annotations // {} | keys[]' | \
+  grep nginx | sort -u
+
+# Count usage of each annotation
+kubectl get ingress -A -o json | \
+  jq -r '.items[].metadata.annotations // {} | keys[]' | \
+  grep nginx | sort | uniq -c | sort -rn</pre>
+
+<h3><span class="step-num">4</span>Check for TLS secrets</h3>
+<pre># List TLS secrets referenced by Ingress resources
+kubectl get ingress -A -o json | \
+  jq -r '.items[] | select(.spec.tls) | .spec.tls[].secretName' | \
+  sort -u
+
+# These will need to be migrated to ACM certificates</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>You have a list of all clusters running ingress-nginx</li>
+<li>You know which NGINX-specific annotations are in use (these need mapping to AWS LBC)</li>
+<li>You have an inventory of TLS secrets that need ACM equivalents</li>
+<li>You have exported all Ingress manifests for the migration</li>
+</ul>
+</div>
+
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://aws.amazon.com/blogs/networking-and-content-delivery/navigating-the-nginx-ingress-retirement-a-practical-guide-to-migration-on-aws/" target="_blank">AWS: NGINX Ingress Retirement Migration Guide</a>
+</div>
+</section>
+
+<section class="lab" id="lab2">
+<span class="badge-level l200">L200</span>
+<span class="badge-real">✅ Based on Official AWS Blog Walkthrough</span>
+<h2>Lab 2: Migrate Ingress from NGINX to AWS LBC (URI Rewrite + TLS)</h2>
+
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Migrate a real Ingress resource from ingress-nginx to AWS Load Balancer Controller, implementing URI rewrite and TLS termination with ACM. Based on the official AWS blog walkthrough.</p>
+</div>
+
+<div class="prereqs">
+<h4>⚡ Prerequisites</h4>
+<ul>
+<li>EKS cluster with an existing node group</li>
+<li>AWS Load Balancer Controller installed (<code>helm install</code>)</li>
+<li>AWS CLI, eksctl, kubectl, Helm configured</li>
+<li>A domain with a certificate in ACM (or use certificate discovery)</li>
+</ul>
+</div>
+
+<h3><span class="step-num">1</span>Deploy a sample backend service</h3>
+<pre># Create a simple echo server
+kubectl create deployment http-svc --image=hashicorp/http-echo \
+  --port=80 -- -text="Hello from http-svc"
+kubectl expose deployment http-svc --port=80 --target-port=5678</pre>
+
+<h3><span class="step-num">2</span>Create the NGINX Ingress (baseline)</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rewrite-nginx
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: rewrite.bar.com
+    http:
+      paths:
+      - path: /something(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: http-svc
+            port:
+              number: 80
+EOF</pre>
+
+<h3><span class="step-num">3</span>Create the AWS LBC equivalent</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rewrite-alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/transforms.http-svc: |
+      [
+        {
+          "type": "url-rewrite",
+          "urlRewriteConfig": {
+            "rewrites": [
+              {
+                "regex": "^\\/something\\/(.*)$",
+                "replace": "/$1"
+              }
+            ]
+          }
+        }
+      ]
+spec:
+  ingressClassName: alb
+  rules:
+  - host: rewrite.bar.com
+    http:
+      paths:
+      - path: /something
+        pathType: Prefix
+        backend:
+          service:
+            name: http-svc
+            port:
+              number: 80
+EOF</pre>
+
+<h3><span class="step-num">4</span>Verify ALB creation</h3>
+<pre># Check the Ingress status for ALB address
+kubectl get ingress rewrite-alb -o wide
+
+# Wait for ALB to be provisioned (1-2 minutes)
+kubectl describe ingress rewrite-alb | grep Address
+
+# Test the rewrite
+ALB_DNS=$(kubectl get ingress rewrite-alb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+curl -H "Host: rewrite.bar.com" http://$ALB_DNS/something/test</pre>
+
+<h3><span class="step-num">5</span>Add TLS termination with ACM</h3>
+<pre># Request a certificate (if you don't have one)
+aws acm request-certificate \
+  --domain-name rewrite.bar.com \
+  --validation-method DNS \
+  --region us-east-1
+
+# Get the certificate ARN
+CERT_ARN=$(aws acm list-certificates --region us-east-1 \
+  --query 'CertificateSummaryList[?DomainName==`rewrite.bar.com`].CertificateArn' \
+  --output text)
+
+# Update the Ingress with TLS annotations
+kubectl annotate ingress rewrite-alb \
+  alb.ingress.kubernetes.io/certificate-arn=$CERT_ARN \
+  alb.ingress.kubernetes.io/listen-ports='[{"HTTP": 80}, {"HTTPS": 443}]' \
+  alb.ingress.kubernetes.io/ssl-redirect='443' \
+  alb.ingress.kubernetes.io/ssl-policy=ELBSecurityPolicy-TLS-1-2-2017-01</pre>
+
+<h3><span class="step-num">6</span>Cleanup</h3>
+<pre>kubectl delete ingress rewrite-nginx rewrite-alb
+kubectl delete deployment http-svc
+kubectl delete service http-svc</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>ALB was provisioned and accessible via the DNS name</li>
+<li>URI rewrite works: <code>/something/test</code> routes to <code>/test</code> on the backend</li>
+<li>TLS termination works with ACM certificate</li>
+<li>HTTP-to-HTTPS redirect is active</li>
+</ul>
+</div>
+
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://aws.amazon.com/blogs/networking-and-content-delivery/navigating-the-nginx-ingress-retirement-a-practical-guide-to-migration-on-aws/" target="_blank">AWS Blog: Full Migration Walkthrough</a>
+<a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/ingress/annotations/" target="_blank">AWS LBC Ingress Annotations Reference</a>
+</div>
+</section>
+
+<section class="lab" id="lab3">
+<span class="badge-level l200">L200</span>
+<span class="badge-ai">⚠️ AI-Generated - Validate before use</span>
+<h2>Lab 3: Convert Ingress to Gateway API with ingress2gateway</h2>
+
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Use the official ingress2gateway tool to automatically convert existing Ingress resources to Gateway API resources (Gateway + HTTPRoute), then deploy them with AWS LBC v3.</p>
+</div>
+
+<div class="prereqs">
+<h4>⚡ Prerequisites</h4>
+<ul>
+<li>Go 1.21+ installed (for ingress2gateway)</li>
+<li>EKS cluster with AWS LBC v3.0+ installed</li>
+<li>Gateway API CRDs installed in the cluster</li>
+<li>Existing Ingress resources to convert</li>
+</ul>
+</div>
+
+<h3><span class="step-num">1</span>Install ingress2gateway and Gateway API CRDs</h3>
+<pre># Install ingress2gateway
+go install github.com/kubernetes-sigs/ingress2gateway@latest
+
+# Install Gateway API CRDs
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml</pre>
+
+<h3><span class="step-num">2</span>Export and convert existing Ingress resources</h3>
+<pre># Export current Ingress resources
+kubectl get ingress -A -o yaml > my-ingress.yaml
+
+# Convert using ingress2gateway
+ingress2gateway print --providers ingress-nginx \
+  --input-file my-ingress.yaml > gateway-resources.yaml
+
+# Review the output
+cat gateway-resources.yaml</pre>
+
+<h3><span class="step-num">3</span>Create GatewayClass for AWS LBC</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: aws-alb
+spec:
+  controllerName: gateway.k8s.aws/alb
+EOF</pre>
+
+<h3><span class="step-num">4</span>Review and adjust converted resources</h3>
+<pre># ingress2gateway may generate a generic Gateway
+# Update the gatewayClassName to aws-alb
+# Review any warnings about untranslatable annotations
+
+# Apply the converted resources
+kubectl apply -f gateway-resources.yaml</pre>
+
+<h3><span class="step-num">5</span>Verify Gateway and HTTPRoute status</h3>
+<pre># Check Gateway status
+kubectl get gateway -A
+kubectl describe gateway my-gateway
+
+# Check HTTPRoute status
+kubectl get httproute -A
+kubectl describe httproute my-app
+
+# Verify ALB was provisioned
+kubectl get gateway my-gateway -o jsonpath='{.status.addresses[0].value}'</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>ingress2gateway successfully converted Ingress to Gateway + HTTPRoute</li>
+<li>GatewayClass <code>aws-alb</code> is accepted by AWS LBC</li>
+<li>Gateway shows <code>Programmed: True</code> condition</li>
+<li>HTTPRoute shows <code>Accepted: True</code> condition</li>
+<li>ALB is provisioned and traffic routes correctly</li>
+</ul>
+</div>
+
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://github.com/kubernetes-sigs/ingress2gateway" target="_blank">ingress2gateway GitHub Repository</a>
+<a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/gateway/" target="_blank">AWS LBC Gateway API Documentation</a>
+<a href="https://gateway-api.sigs.k8s.io/guides/getting-started/migrating-from-ingress-nginx/" target="_blank">Gateway API: Migrating from Ingress-NGINX</a>
+</div>
+</section>
+
+<section class="lab" id="lab4">
+<span class="badge-level l300">L300</span>
+<span class="badge-ai">⚠️ AI-Generated - Validate before use</span>
+<h2>Lab 4: Full Migration Scenario - Side-by-Side with Zero-Downtime Cutover</h2>
+
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Simulate a real production migration: deploy ingress-nginx and AWS LBC side-by-side, run both controllers simultaneously, progressively shift traffic, and perform a zero-downtime cutover. Based on the F5 blog and AWS blog migration patterns.</p>
+</div>
+
+<div class="prereqs">
+<h4>⚡ Prerequisites</h4>
+<ul>
+<li>EKS cluster with node group</li>
+<li>Helm 3.x installed</li>
+<li>AWS LBC installed</li>
+<li>A Route 53 hosted zone (for DNS-based traffic shifting)</li>
+</ul>
+</div>
+
+<h3><span class="step-num">1</span>Deploy ingress-nginx (simulating legacy)</h3>
+<pre># Install ingress-nginx via Helm
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace \
+  --set controller.service.type=LoadBalancer
+
+# Wait for NLB to be provisioned
+kubectl get svc -n ingress-nginx ingress-nginx-controller -w</pre>
+
+<h3><span class="step-num">2</span>Deploy sample application with NGINX Ingress</h3>
+<pre># Deploy sample app
+kubectl create deployment web-app --image=hashicorp/http-echo \
+  --port=80 -- -text="Hello from web-app"
+kubectl expose deployment web-app --port=80 --target-port=5678
+
+# Create NGINX Ingress
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: app.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80
+EOF
+
+# Get NGINX LB address
+NGINX_LB=$(kubectl get svc -n ingress-nginx ingress-nginx-controller \
+  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+echo "NGINX LB: $NGINX_LB"</pre>
+
+<h3><span class="step-num">3</span>Create AWS LBC Ingress (side-by-side)</h3>
+<pre># Create ALB Ingress pointing to the SAME backend
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  ingressClassName: alb
+  rules:
+  - host: app.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80
+EOF
+
+# Get ALB address
+ALB_DNS=$(kubectl get ingress web-app-alb \
+  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+echo "ALB DNS: $ALB_DNS"</pre>
+
+<h3><span class="step-num">4</span>Test both paths independently</h3>
+<pre># Test via NGINX (NLB)
+curl -H "Host: app.example.com" http://$NGINX_LB/
+
+# Test via AWS LBC (ALB)
+curl -H "Host: app.example.com" http://$ALB_DNS/
+
+# Both should return the same response</pre>
+
+<h3><span class="step-num">5</span>Simulate progressive traffic shift (Route 53)</h3>
+<pre># In production, you would:
+# 1. Create weighted Route 53 records:
+#    - app.example.com -> NGINX_LB (weight: 90)
+#    - app.example.com -> ALB_DNS  (weight: 10)
+# 2. Monitor error rates and latency
+# 3. Gradually shift: 90/10 -> 70/30 -> 50/50 -> 10/90 -> 0/100
+# 4. Remove NGINX record when 100% on ALB
+
+# For this lab, verify both endpoints work:
+echo "NGINX: $(curl -s -H 'Host: app.example.com' http://$NGINX_LB/)"
+echo "ALB:   $(curl -s -H 'Host: app.example.com' http://$ALB_DNS/)"</pre>
+
+<h3><span class="step-num">6</span>Remove legacy ingress-nginx</h3>
+<pre># After full validation on ALB:
+kubectl delete ingress web-app-nginx
+
+# Uninstall ingress-nginx
+helm uninstall ingress-nginx -n ingress-nginx
+kubectl delete namespace ingress-nginx</pre>
+
+<h3><span class="step-num">7</span>Cleanup</h3>
+<pre>kubectl delete ingress web-app-alb
+kubectl delete deployment web-app
+kubectl delete service web-app</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>Both NGINX and ALB Ingress resources coexist pointing to the same backend</li>
+<li>Traffic works through both paths independently</li>
+<li>Progressive traffic shift strategy is understood (Route 53 weighted records)</li>
+<li>Legacy ingress-nginx is cleanly removed after cutover</li>
+<li>No downtime during the entire migration process</li>
+</ul>
+</div>
+
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://aws.amazon.com/blogs/networking-and-content-delivery/navigating-the-nginx-ingress-retirement-a-practical-guide-to-migration-on-aws/" target="_blank">AWS: NGINX Ingress Retirement Migration Guide</a>
+<a href="https://www.f5.com/company/blog/nginx/migrating-from-community-ingress-controller-to-f5-nginx-ingress-controller" target="_blank">F5: Community to F5 NGINX IC Migration</a>
+<a href="https://engineering.01cloud.com/2026/03/26/migrating-from-kubernetes-ingress-to-gateway-api-a-zero-downtime-production-success-story/" target="_blank">01Cloud: Zero-Downtime Migration Success Story</a>
+</div>
+</section>
+
+<section class="lab" id="challenge-mode">
+<h2>🎯 Challenge Mode</h2>
+<div style="border-left:4px solid #ff9800;padding:16px 20px;margin:16px 0;background:var(--warn-bg);border-radius:0 8px 8px 0;color:var(--warn-text)">
+<h4>Completou os labs guiados?</h4>
+<p>Teste seu conhecimento sem guia. Ative <code>#challenge-mentor</code> no chat e peça desafios sobre <strong>NGINX Ingress migration e Gateway API</strong>.</p>
+<p>O mentor vai gerar cenários novos no mesmo domínio - variações que você não viu nos labs, com root causes diferentes e sem guia passo-a-passo.</p>
+<p style="margin-top:12px"><strong>Exemplo:</strong> "Quero desafios de NGINX migration Lv300"</p>
+</div>
+</section>
+
+</div>
+<footer>
+<p>NGINX Ingress Migration Labs Portal - Generated May 2, 2026</p>
+<p>5 labs · L100-L300 · Based on AWS Blog, F5 Docs, and field patterns</p>
+</footer>
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);
+  localStorage.setItem('nginx-labs-theme',t);
+}
+(function(){
+  const s=localStorage.getItem('nginx-labs-theme');
+  if(s)document.documentElement.setAttribute('data-theme',s);
+})();
+</script>

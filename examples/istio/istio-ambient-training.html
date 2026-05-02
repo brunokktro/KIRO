@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Istio Ambient Mode + EKS Deep Dive - Training Portal</title>
+<style>
+:root{--bg:#fff;--text:#1a1a2e;--card-bg:#f8f9fa;--border:#e0e0e0;--accent:#0073BB;--header-bg:linear-gradient(135deg,#232F3E,#0073BB);--code-bg:#f4f4f4;--key-bg:#e8f4fd;--key-border:#b3d9f2;--shadow:rgba(0,0,0,.08)}
+[data-theme="dark"]{--bg:#1a1a2e;--text:#e0e0e0;--card-bg:#16213e;--border:#2a2a4a;--accent:#4fc3f7;--header-bg:linear-gradient(135deg,#0f3460,#1a5276);--code-bg:#16213e;--key-bg:#1a2744;--key-border:#2a4a6a;--shadow:rgba(0,0,0,.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:960px;margin:0 auto;padding:0 24px}
+header{background:var(--header-bg);color:#fff;padding:48px 0 36px}
+header h1{font-size:2rem;margin-bottom:8px}
+header p{opacity:.85;font-size:1.05rem}
+.meta{margin-top:12px;font-size:.85rem;opacity:.65}
+.badge{background:var(--accent);color:#fff;padding:2px 10px;border-radius:12px;font-size:.75rem;vertical-align:middle}
+.theme-toggle{position:fixed;top:1rem;right:1rem;z-index:100;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow)}
+.toc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px 32px;margin:32px 0}
+.toc h2{font-size:1.2rem;margin-bottom:12px}
+.toc ol{padding-left:20px}.toc li{margin:6px 0}
+.toc-group{font-size:.8rem;font-weight:700;text-transform:uppercase;color:var(--accent);margin-top:16px;margin-bottom:4px;letter-spacing:.5px}
+.module{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:32px;margin:24px 0;box-shadow:0 2px 8px var(--shadow)}
+.module h2{font-size:1.5rem;margin-bottom:16px;color:var(--accent);border-bottom:2px solid var(--border);padding-bottom:8px}
+.module h3{margin:20px 0 8px;font-size:1.15rem}
+.module p{margin:8px 0}
+.key-concepts{background:var(--key-bg);border:1px solid var(--key-border);border-radius:8px;padding:16px 20px;margin:16px 0}
+.key-concepts h4{margin-bottom:8px}
+.key-concepts ul{padding-left:20px}
+.key-concepts li{margin:4px 0}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;font-size:.88rem;line-height:1.5;margin:12px 0}
+code{font-family:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace}
+.hands-on{border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--key-bg);border-radius:0 8px 8px 0}
+.hands-on h4{margin-bottom:8px}
+.resources-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}
+@media(max-width:700px){.resources-grid{grid-template-columns:1fr}}
+.resources-grid h4{margin-bottom:10px;font-size:.95rem}
+.resources-grid ul{list-style:none;padding:0}
+.resources-grid li{margin:8px 0;font-size:.9rem}
+.link-type{display:inline-block;background:var(--border);color:var(--text);padding:1px 6px;border-radius:3px;font-size:.7rem;font-weight:700;margin-right:6px;text-transform:uppercase}
+.badge-important{background:#FFF3CD;color:#856404;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-notes{background:#D4EDDA;color:#155724;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-new{background:#d4edda;color:#155724;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.badge-ai{background:#f8d7da;color:#721c24;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;margin-right:6px}
+.warning-box{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px 20px;margin:16px 0;color:#856404}
+[data-theme="dark"] .warning-box{background:#3b2e00;border-color:#ffc107;color:#FEC448}
+[data-theme="dark"] .badge-important{background:#3b2e00;color:#FEC448}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.9rem}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--key-bg);font-weight:600}
+footer{text-align:center;padding:32px;font-size:.85rem;opacity:.6;margin-top:32px}
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌓</button>
+<header>
+<div class="container">
+<h1>🚀 Istio Ambient Mode + EKS Deep Dive <span class="badge">2026</span></h1>
+<p>Ambient Mode architecture, Sidecar vs Ambient decision framework, AWS-specific considerations, EKS Auto Mode, e advanced patterns</p>
+<div class="meta">Generated May 2, 2026 · Based on istio.io, AWS blogs, aws-samples/istio-on-eks, and field notes · 5 modules</div>
+</div>
+</header>
+<div class="container">
+<nav class="toc">
+<h2>📑 Table of Contents</h2>
+<div class="toc-group">Ambient Mode</div>
+<ol start="7">
+<li><a href="#m7">Ambient Mode Architecture</a></li>
+<li><a href="#m8">Sidecar vs Ambient - Decision Framework</a></li>
+</ol>
+<div class="toc-group">EKS Integration</div>
+<ol start="9">
+<li><a href="#m9">Istio on EKS - AWS-Specific Considerations</a></li>
+<li><a href="#m10">Ambient Mode on EKS Auto Mode</a></li>
+</ol>
+<div class="toc-group">Advanced</div>
+<ol start="11">
+<li><a href="#m11">Advanced Patterns</a></li>
+</ol>
+</nav>
+
+<section class="module" id="m7">
+<h2>7. Ambient Mode Architecture</h2>
+<p>Ambient mode is Istio's sidecar-less data plane, introduced as a major architectural evolution. Instead of injecting an Envoy sidecar into every pod, ambient mode splits mesh functionality into two layers: a per-node <strong>ztunnel</strong> for L4 and optional per-namespace <strong>waypoint proxies</strong> for L7.</p>
+
+<h3>ztunnel - Per-Node L4 Proxy</h3>
+<p><strong>ztunnel</strong> (zero-trust tunnel) runs as a DaemonSet - one instance per node. It handles:</p>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>mTLS encryption:</strong> All pod-to-pod traffic is encrypted transparently, just like sidecar mode</li>
+<li><strong>L4 authorization:</strong> Enforces AuthorizationPolicy rules at the TCP level (source/destination identity, port)</li>
+<li><strong>Telemetry:</strong> Collects L4 metrics (TCP connections, bytes transferred)</li>
+</ul>
+<p>ztunnel uses the HBONE protocol (HTTP-based overlay network encapsulation) to tunnel traffic between nodes. It intercepts traffic at the node level using eBPF or iptables (via Istio CNI), eliminating the need for per-pod sidecars.</p>
+
+<h3>Waypoint Proxies - Per-Namespace L7</h3>
+<p><strong>Waypoint proxies</strong> are Envoy instances deployed per-namespace (or per-service) that handle L7 features:</p>
+<ul style="margin:8px 0 8px 20px">
+<li>HTTP routing (VirtualService rules, header-based routing)</li>
+<li>L7 authorization (path-based, method-based AuthorizationPolicy)</li>
+<li>Traffic management (retries, timeouts, fault injection, traffic splitting)</li>
+<li>L7 telemetry (HTTP metrics, distributed tracing)</li>
+</ul>
+<p>Waypoint proxies are optional - you only deploy them for namespaces that need L7 features. This is the key cost optimization: most services only need mTLS and L4 auth (handled by ztunnel), and only a subset needs full L7 capabilities.</p>
+<pre><code># Deploy a waypoint proxy for a namespace
+istioctl waypoint apply --namespace bookinfo
+
+# Or via Kubernetes Gateway API
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: bookinfo-waypoint
+  namespace: bookinfo
+  labels:
+    istio.io/waypoint-for: service
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+  - name: mesh
+    port: 15008
+    protocol: HBONE</code></pre>
+
+<h3>L4/L7 Split - Why It Matters</h3>
+<p>The L4/L7 split is the fundamental innovation of ambient mode:</p>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>Cost:</strong> Sidecars consume CPU/memory per pod. ztunnel is per-node (shared). For a node with 30 pods, you go from 30 Envoy instances to 1 ztunnel + 0-1 waypoint proxies.</li>
+<li><strong>Performance:</strong> ztunnel is a purpose-built Rust proxy optimized for L4. Lower latency than full Envoy for mTLS-only workloads.</li>
+<li><strong>Operations:</strong> No sidecar injection means no pod restarts for mesh upgrades. ztunnel DaemonSet can be upgraded independently.</li>
+</ul>
+
+<h3>Istio CNI in Ambient Mode</h3>
+<p>The Istio CNI plugin is <strong>required</strong> for ambient mode (not optional like in sidecar mode). It configures traffic redirection at the node level to route pod traffic through ztunnel.</p>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>ztunnel:</strong> Per-node L4 proxy (DaemonSet). Handles mTLS, L4 auth, L4 telemetry. Written in Rust</li>
+<li><strong>Waypoint proxy:</strong> Per-namespace Envoy for L7 features. Optional - deploy only where needed</li>
+<li><strong>HBONE:</strong> HTTP-based overlay network encapsulation. Protocol used by ztunnel for inter-node traffic</li>
+<li><strong>L4/L7 split:</strong> ztunnel handles L4 (mTLS, TCP auth), waypoint handles L7 (HTTP routing, tracing)</li>
+<li><strong>Istio CNI required:</strong> Ambient mode requires the CNI plugin for traffic interception at node level</li>
+<li><strong>No sidecar injection:</strong> Namespace label <code>istio.io/dataplane-mode=ambient</code> instead of <code>istio-injection=enabled</code></li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Start Here</span><a href="https://istio.io/latest/docs/ambient/overview/" target="_blank">Istio: Ambient Mode Overview</a></li>
+<li><span class="link-type">DOCS</span><a href="https://istio.io/latest/docs/overview/dataplane-modes/" target="_blank">Istio: Data Plane Modes</a></li>
+<li><span class="link-type">DOCS</span><a href="https://istio.io/latest/docs/ambient/usage/waypoint/" target="_blank">Waypoint Proxies</a></li>
+<li><span class="link-type">DOCS</span><a href="https://istio.io/latest/docs/ambient/usage/ztunnel/" target="_blank">ztunnel Usage</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+ambient+mode+ztunnel+architecture+2024" target="_blank">Search: Istio Ambient Mode Architecture (YouTube)</a></li>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+ambient+mesh+waypoint+proxy" target="_blank">Search: Istio Waypoint Proxy (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m8">
+<h2>8. Sidecar vs Ambient - Decision Framework</h2>
+<p>Sidecar and ambient modes can coexist in the same mesh. The choice depends on workload requirements, cost sensitivity, and operational maturity.</p>
+
+<h3>Full Comparison</h3>
+<table>
+<tr><th>Capability</th><th>Sidecar Mode</th><th>Ambient Mode (ztunnel only)</th><th>Ambient + Waypoint</th></tr>
+<tr><td><strong>mTLS</strong></td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td></tr>
+<tr><td><strong>L4 AuthorizationPolicy</strong></td><td>✅</td><td>✅</td><td>✅</td></tr>
+<tr><td><strong>L7 AuthorizationPolicy</strong></td><td>✅</td><td>❌</td><td>✅</td></tr>
+<tr><td><strong>VirtualService routing</strong></td><td>✅</td><td>❌</td><td>✅</td></tr>
+<tr><td><strong>Traffic splitting/canary</strong></td><td>✅</td><td>❌</td><td>✅</td></tr>
+<tr><td><strong>Fault injection</strong></td><td>✅</td><td>❌</td><td>✅</td></tr>
+<tr><td><strong>Retries/timeouts</strong></td><td>✅</td><td>❌</td><td>✅</td></tr>
+<tr><td><strong>HTTP metrics</strong></td><td>✅</td><td>❌ (L4 only)</td><td>✅</td></tr>
+<tr><td><strong>Distributed tracing</strong></td><td>✅</td><td>❌</td><td>✅</td></tr>
+<tr><td><strong>Wasm extensibility</strong></td><td>✅</td><td>❌</td><td>✅</td></tr>
+<tr><td><strong>Resource cost per pod</strong></td><td>~128MB + 100m CPU per sidecar</td><td>Shared (ztunnel DaemonSet)</td><td>Shared + waypoint per namespace</td></tr>
+<tr><td><strong>Upgrade impact</strong></td><td>Pod restart required</td><td>No pod restart</td><td>No pod restart</td></tr>
+<tr><td><strong>Multi-cluster</strong></td><td>✅ Mature</td><td>⚠️ Evolving</td><td>⚠️ Evolving</td></tr>
+<tr><td><strong>VM workloads</strong></td><td>✅</td><td>❌</td><td>❌</td></tr>
+</table>
+
+<h3>When to Use Sidecar</h3>
+<ul style="margin:8px 0 8px 20px">
+<li>Multi-cluster deployments requiring mature cross-cluster communication</li>
+<li>VM workloads that need mesh integration</li>
+<li>Full L7 features needed on every service (not just a subset)</li>
+<li>Wasm plugin extensibility on every workload</li>
+<li>Production environments requiring battle-tested stability</li>
+</ul>
+
+<h3>When to Use Ambient</h3>
+<ul style="margin:8px 0 8px 20px">
+<li>Zero-trust first: you primarily need mTLS and L4 authorization across all services</li>
+<li>Selective L7: only a subset of services need HTTP routing, tracing, or L7 auth</li>
+<li>Cost optimization: large clusters where sidecar overhead is significant</li>
+<li>Operational simplicity: avoid sidecar injection complexity and pod restart requirements</li>
+<li>New mesh deployments without existing sidecar investment</li>
+</ul>
+
+<h3>Migration Path: Sidecar to Ambient</h3>
+<p>Sidecar and ambient modes coexist in the same mesh. Migration is per-namespace:</p>
+<ol style="margin:8px 0 8px 20px">
+<li>Remove <code>istio-injection=enabled</code> label from namespace</li>
+<li>Add <code>istio.io/dataplane-mode=ambient</code> label</li>
+<li>Restart pods to remove sidecars (they join the mesh via ztunnel automatically)</li>
+<li>Deploy waypoint proxy if L7 features are needed</li>
+<li>Validate connectivity and policies</li>
+</ol>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>Coexistence:</strong> Sidecar and ambient namespaces can communicate within the same mesh</li>
+<li><strong>Sidecar strengths:</strong> Multi-cluster maturity, VM support, full L7 everywhere, Wasm extensibility</li>
+<li><strong>Ambient strengths:</strong> Lower resource cost, no pod restarts for upgrades, selective L7, simpler operations</li>
+<li><strong>Migration:</strong> Per-namespace, non-disruptive. Change labels, restart pods, optionally add waypoint</li>
+<li><strong>Decision driver:</strong> If >80% of services only need mTLS + L4 auth, ambient is likely the better choice</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Decision Guide</span><a href="https://istio.io/latest/docs/overview/dataplane-modes/" target="_blank">Istio: Data Plane Modes Comparison</a></li>
+<li><span class="link-type">DOCS</span><a href="https://istio.io/latest/docs/ambient/upgrade/helm/" target="_blank">Ambient Mode Upgrade Guide</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+sidecar+vs+ambient+mode+comparison" target="_blank">Search: Istio Sidecar vs Ambient Comparison (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m9">
+<h2>9. Istio on EKS - AWS-Specific Considerations</h2>
+<p>Running Istio on EKS requires understanding how Istio interacts with AWS-specific networking components: VPC CNI, ALB/NLB, Karpenter, and multi-AZ topologies.</p>
+
+<h3>VPC CNI Compatibility</h3>
+<p>The Amazon VPC CNI plugin assigns real VPC IP addresses to pods. Istio works well with VPC CNI because pod IPs are routable within the VPC. Key considerations:</p>
+<ul style="margin:8px 0 8px 20px">
+<li>VPC CNI's <code>ENABLE_PREFIX_DELEGATION</code> works with Istio (more IPs per node)</li>
+<li>Security groups for pods (SGP) work with Istio sidecars but require careful configuration</li>
+<li>Network Policy enforcement: VPC CNI network policy and Istio AuthorizationPolicy are complementary (VPC CNI at L3/L4, Istio at L4/L7)</li>
+</ul>
+
+<h3>Istio CNI Plugin on EKS</h3>
+<p>The Istio CNI plugin is recommended on EKS to avoid requiring <code>NET_ADMIN</code> capability in init containers. This is especially important when using Pod Security Standards (restricted profile) or when running on Fargate (where init containers with elevated privileges are restricted).</p>
+
+<h3>ALB Integration with Istio Gateway</h3>
+<p>Two common patterns for exposing Istio services externally on EKS:</p>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>NLB + Istio IngressGateway:</strong> AWS NLB fronts the Istio ingress gateway (Envoy). TLS termination at Istio level. Most common pattern.</li>
+<li><strong>ALB + Istio:</strong> AWS ALB terminates TLS and routes to Istio services. Requires careful configuration to preserve headers and client IP.</li>
+</ul>
+
+<h3>Karpenter Considerations</h3>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>Node sizing for sidecars:</strong> Each sidecar adds ~128MB memory + 100m CPU. Factor this into Karpenter NodePool resource limits.</li>
+<li><strong>ztunnel DaemonSet:</strong> In ambient mode, ztunnel runs on every node. Karpenter must account for DaemonSet overhead when right-sizing nodes.</li>
+<li><strong>Disruption budgets:</strong> Configure Karpenter's <code>consolidationPolicy</code> to respect Istio's PodDisruptionBudgets during node consolidation.</li>
+</ul>
+
+<h3>Locality-Aware Routing (Multi-AZ Cost Optimization)</h3>
+<p>Istio supports locality-aware routing to keep traffic within the same AZ, reducing cross-AZ data transfer costs. Configure via DestinationRule with <code>localityLbSetting</code>. On EKS, this maps to AWS Availability Zones automatically via node topology labels.</p>
+<pre><code>apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: reviews
+spec:
+  host: reviews
+  trafficPolicy:
+    loadBalancer:
+      localityLbSetting:
+        enabled: true
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 10s
+      baseEjectionTime: 30s</code></pre>
+
+<div class="warning-box">
+<strong>📝 Curated links:</strong><br>
+• <a href="https://catalog.us-east-1.prod.workshops.aws/workshops/296c8da6-8474-4a7d-90c5-10090aa5e392/en-US" target="_blank">AWS Workshop Studio: Istio on EKS</a> - official hands-on workshop<br>
+• <a href="https://github.com/aws-ia/terraform-aws-eks-blueprints/tree/main/patterns/istio" target="_blank">Terraform EKS Blueprint - Istio Pattern</a> - production-ready Terraform for EKS + Istio
+</div>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>VPC CNI + Istio:</strong> Compatible. Pod IPs are VPC-routable. Prefix delegation works. SGP requires careful config</li>
+<li><strong>Istio CNI on EKS:</strong> Recommended to avoid NET_ADMIN. Required for PSS restricted and Fargate</li>
+<li><strong>NLB + IngressGateway:</strong> Most common EKS pattern. NLB fronts Istio Envoy gateway</li>
+<li><strong>Karpenter + sidecars:</strong> Factor sidecar overhead (~128MB/pod) into NodePool limits</li>
+<li><strong>Locality-aware routing:</strong> Keep traffic in-AZ to reduce cross-AZ costs. Uses node topology labels</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ EKS Setup</span><a href="https://istio.io/latest/docs/setup/platform-setup/amazon-eks/" target="_blank">Istio: Amazon EKS Platform Setup</a></li>
+<li><span class="link-type">BLOG</span><a href="https://aws.amazon.com/blogs/opensource/getting-started-with-istio-on-amazon-eks/" target="_blank">AWS: Getting Started with Istio on EKS</a></li>
+<li><span class="link-type">REPO</span><a href="https://github.com/aws-ia/terraform-aws-eks-blueprints/tree/main/patterns/istio" target="_blank">EKS Blueprints: Istio Pattern (Terraform)</a></li>
+<li><span class="link-type">REPO</span><a href="https://github.com/aws-samples/istio-on-eks" target="_blank">aws-samples/istio-on-eks</a></li>
+<li><span class="link-type">WORKSHOP</span><a href="https://catalog.us-east-1.prod.workshops.aws/workshops/296c8da6-8474-4a7d-90c5-10090aa5e392/en-US" target="_blank">AWS Workshop: Istio on EKS</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+on+amazon+eks+setup+2024" target="_blank">Search: Istio on Amazon EKS Setup (YouTube)</a></li>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+locality+aware+routing+multi+az" target="_blank">Search: Istio Locality-Aware Routing (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m10">
+<h2>10. Ambient Mode on EKS Auto Mode</h2>
+<p>EKS Auto Mode simplifies cluster operations by managing node groups, scaling, and add-ons automatically. However, running Istio (especially ambient mode) on EKS Auto Mode has specific considerations and limitations as of May 2026.</p>
+
+<h3>Current Status (May 2026)</h3>
+<ul style="margin:8px 0 8px 20px">
+<li><strong>Sidecar mode:</strong> Works on EKS Auto Mode with some caveats (Istio CNI plugin must be configured carefully alongside Auto Mode's managed CNI)</li>
+<li><strong>Ambient mode:</strong> Limited support. ztunnel DaemonSet requires node-level access that Auto Mode restricts. Solo.io has been working with AWS to address this.</li>
+<li><strong>Key limitation:</strong> EKS Auto Mode manages the CNI and node configuration. Custom DaemonSets (like ztunnel) that modify node networking may conflict with Auto Mode's managed components.</li>
+</ul>
+
+<h3>Solo.io Partnership with AWS</h3>
+<p>Solo.io (the company behind Gloo Mesh and major Istio contributors) has partnered with AWS to accelerate Istio support on EKS Auto Mode. Their Gloo Mesh Enterprise product provides a managed Istio experience that integrates with EKS Auto Mode's constraints.</p>
+
+<h3>What Works and What Doesn't</h3>
+<table>
+<tr><th>Feature</th><th>EKS Auto Mode Status</th><th>Notes</th></tr>
+<tr><td>Istio sidecar injection</td><td>✅ Works</td><td>Standard webhook-based injection</td></tr>
+<tr><td>Istio CNI Plugin</td><td>⚠️ Requires config</td><td>Must coexist with Auto Mode CNI</td></tr>
+<tr><td>ztunnel DaemonSet</td><td>⚠️ Limited</td><td>Node-level networking restrictions</td></tr>
+<tr><td>Waypoint proxies</td><td>✅ Works</td><td>Standard Deployment, no node access needed</td></tr>
+<tr><td>Istiod control plane</td><td>✅ Works</td><td>Standard Deployment</td></tr>
+<tr><td>Gloo Mesh Enterprise</td><td>✅ Supported</td><td>Solo.io managed Istio for Auto Mode</td></tr>
+</table>
+
+<div class="warning-box">
+<strong>⚠️ Evolving Landscape:</strong> EKS Auto Mode + Istio ambient is actively being developed. Check the latest Istio and EKS release notes before planning production deployments. For production ambient on EKS, consider standard managed node groups until Auto Mode support matures.
+</div>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>EKS Auto Mode:</strong> Managed nodes, scaling, and add-ons. Restricts node-level customization</li>
+<li><strong>Sidecar on Auto Mode:</strong> Works. Standard webhook injection, no node-level changes needed</li>
+<li><strong>Ambient on Auto Mode:</strong> Limited. ztunnel DaemonSet conflicts with managed node networking</li>
+<li><strong>Solo.io/Gloo Mesh:</strong> Managed Istio product with EKS Auto Mode integration</li>
+<li><strong>Recommendation:</strong> For ambient mode, use standard EKS managed node groups until Auto Mode support matures</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="link-type">BLOG</span><a href="https://www.solo.io/blog/solo-io-partners-with-aws-to-accelerate-amazon-eks-auto-mode-release" target="_blank">Solo.io: Partners with AWS for EKS Auto Mode</a></li>
+<li><span class="link-type">DOCS</span><a href="https://docs.solo.io/gloo-mesh-enterprise/main/istio/eks_addon/" target="_blank">Gloo Mesh: EKS Addon Documentation</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=eks+auto+mode+istio+service+mesh" target="_blank">Search: EKS Auto Mode + Istio (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="module" id="m11">
+<h2>11. Advanced Patterns</h2>
+<p>Production Istio deployments on EKS often require multi-cluster topologies, cross-cluster identity federation, and AZ-aware resilience strategies.</p>
+
+<h3>Multi-Cluster Multi-Primary</h3>
+<p>In a multi-primary topology, each EKS cluster runs its own Istiod control plane. Clusters share a common trust domain and root CA, enabling cross-cluster mTLS. Services are discovered across clusters via Istio's remote secret mechanism.</p>
+<p>Key considerations for EKS:</p>
+<ul style="margin:8px 0 8px 20px">
+<li>Clusters can be in different VPCs (requires VPC peering or Transit Gateway)</li>
+<li>Each cluster needs its own Istiod but shares the root CA certificate</li>
+<li>Cross-cluster traffic flows through the east-west gateway (dedicated Envoy)</li>
+<li>The <code>aws-samples/istio-on-eks</code> repo has a complete multi-primary pattern</li>
+</ul>
+
+<h3>SPIFFE/SPIRE Federation</h3>
+<p>For environments requiring identity federation beyond Istio's built-in CA, SPIRE (the SPIFFE Runtime Environment) can replace Istiod's Citadel as the certificate authority. This enables:</p>
+<ul style="margin:8px 0 8px 20px">
+<li>Cross-mesh identity federation (Istio mesh A trusts identities from mesh B)</li>
+<li>Integration with non-mesh workloads (VMs, serverless) using SPIFFE SVIDs</li>
+<li>Compliance with strict PKI requirements (custom CA hierarchies, HSM-backed keys)</li>
+</ul>
+
+<h3>AZ Resilience with EKS Zonal Shift + Istio</h3>
+<p>When an AZ experiences degradation, EKS Zonal Shift can evacuate traffic from the impaired AZ. Combined with Istio's locality-aware routing and outlier detection, this provides end-to-end AZ resilience:</p>
+<ul style="margin:8px 0 8px 20px">
+<li>EKS Zonal Shift handles the infrastructure layer (moves pods and load balancer targets)</li>
+<li>Istio's outlier detection ejects unhealthy endpoints in the impaired AZ</li>
+<li>Locality-aware routing redirects traffic to healthy AZs</li>
+<li>Combined, they provide faster recovery than either mechanism alone</li>
+</ul>
+
+<div class="key-concepts">
+<h4>🔑 Key Concepts</h4>
+<ul>
+<li><strong>Multi-primary:</strong> Each cluster has its own Istiod. Shared root CA enables cross-cluster mTLS</li>
+<li><strong>East-west gateway:</strong> Dedicated Envoy for cross-cluster traffic. Required for multi-network topologies</li>
+<li><strong>SPIFFE/SPIRE:</strong> External identity provider replacing Istiod's CA. Enables cross-mesh federation</li>
+<li><strong>EKS Zonal Shift + Istio:</strong> Infrastructure-level AZ evacuation + mesh-level traffic steering = end-to-end resilience</li>
+<li><strong>IPv6 integration:</strong> Istio supports IPv6 EKS clusters for environments scaling beyond IPv4 address space</li>
+</ul>
+</div>
+
+<div class="resources-grid">
+<div>
+<h4>📚 Docs & Reading</h4>
+<ul>
+<li><span class="badge-important">⭐ Patterns Repo</span><a href="https://github.com/aws-samples/istio-on-eks/tree/main/patterns/multi-cluster-multi-primary" target="_blank">aws-samples: Multi-Cluster Multi-Primary Pattern</a></li>
+<li><span class="link-type">BLOG</span><a href="https://aws.amazon.com/blogs/containers/end-to-end-recovery-from-az-impairments-in-amazon-eks-using-eks-zonal-shift-and-istio/" target="_blank">AWS: AZ Recovery with EKS Zonal Shift + Istio</a></li>
+<li><span class="link-type">BLOG</span><a href="https://aws.amazon.com/blogs/containers/scaling-beyond-ipv4-integrating-ipv6-amazon-eks-clusters-into-existing-istio-service-mesh/" target="_blank">AWS: IPv6 EKS + Istio Service Mesh</a></li>
+<li><span class="link-type">DOCS</span><a href="https://istio.io/latest/docs/setup/install/multicluster/" target="_blank">Istio: Multi-Cluster Installation</a></li>
+</ul>
+</div>
+<div>
+<h4>🎬 Videos</h4>
+<ul>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=istio+multi+cluster+eks+multi+primary" target="_blank">Search: Istio Multi-Cluster on EKS (YouTube)</a></li>
+<li><span class="link-type">VIDEO</span><a href="https://www.youtube.com/results?search_query=eks+zonal+shift+istio+resilience" target="_blank">Search: EKS Zonal Shift + Istio (YouTube)</a></li>
+</ul>
+</div>
+</div>
+</section>
+
+</div>
+<footer>
+<p>Istio Ambient Mode + EKS Deep Dive - Generated May 2, 2026</p>
+<p>5 modules · 20+ sources · Based on istio.io, AWS blogs, aws-samples/istio-on-eks, and field notes</p>
+</footer>
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);
+  localStorage.setItem('istio-ambient-theme',t);
+}
+(function(){
+  const s=localStorage.getItem('istio-ambient-theme');
+  if(s)document.documentElement.setAttribute('data-theme',s);
+})();
+</script>
+</body>
+</html>

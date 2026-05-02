@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Istio Service Mesh - Labs Portal</title>
+<style>
+:root{--bg:#fff;--text:#1a1a2e;--card-bg:#f8f9fa;--border:#e0e0e0;--accent:#0073BB;--header-bg:#232F3E;--code-bg:#1e1e2e;--code-text:#cdd6f4;--key-bg:#e8f4fd;--key-border:#b3d9f2;--shadow:rgba(0,0,0,.08);--success:#2e7d32;--warn-bg:#fff3cd;--warn-text:#856404;--ai-bg:#f8d7da;--ai-text:#721c24}
+[data-theme="dark"]{--bg:#1a1a2e;--text:#e0e0e0;--card-bg:#16213e;--border:#2a2a4a;--accent:#4fc3f7;--header-bg:#0f3460;--code-bg:#11111b;--code-text:#cdd6f4;--key-bg:#1a2744;--key-border:#2a4a6a;--shadow:rgba(0,0,0,.3);--success:#66bb6a;--warn-bg:#3b2e00;--warn-text:#FEC448;--ai-bg:#2d1b1b;--ai-text:#f8d7da}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:960px;margin:0 auto;padding:0 24px}
+header{background:var(--header-bg);color:#fff;padding:48px 0 36px}
+header h1{font-size:2rem;margin-bottom:8px}
+header p{opacity:.85;font-size:1.05rem}
+.meta{margin-top:12px;font-size:.85rem;opacity:.65}
+.theme-toggle{position:fixed;top:1rem;right:1rem;z-index:100;background:var(--card-bg);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow)}
+.toc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px 32px;margin:32px 0}
+.toc h2{font-size:1.2rem;margin-bottom:12px}
+.toc ol{padding-left:20px}.toc li{margin:6px 0}
+.badge-level{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.75rem;font-weight:700;margin-right:8px;color:#fff}
+.l100{background:#4caf50}.l200{background:#ff9800}.l300{background:#f57c00}.l400{background:#d32f2f}
+.badge-ai{background:var(--ai-bg);color:var(--ai-text);padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600;display:inline-block;margin-bottom:12px}
+.badge-real{background:#d4edda;color:#155724;padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600;display:inline-block;margin-bottom:12px}
+.lab{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:32px;margin:24px 0;box-shadow:0 2px 8px var(--shadow)}
+.lab h2{font-size:1.5rem;margin-bottom:16px;color:var(--accent);border-bottom:2px solid var(--border);padding-bottom:8px}
+.lab h3{margin:20px 0 8px;font-size:1.1rem}
+.objective{border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--key-bg);border-radius:0 8px 8px 0}
+.prereqs{border-left:4px solid #ff9800;padding:12px 16px;margin:16px 0;background:var(--warn-bg);border-radius:0 8px 8px 0;color:var(--warn-text)}
+.validation{border-left:4px solid var(--success);padding:12px 16px;margin:16px 0;background:#e8f5e9;border-radius:0 8px 8px 0}
+[data-theme="dark"] .validation{background:#1b3a1b}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:.85rem;font-weight:700;margin-right:8px}
+pre{background:var(--code-bg);color:var(--code-text);border-radius:8px;padding:16px;overflow-x:auto;font-size:.88rem;line-height:1.5;margin:12px 0}
+code{font-family:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace}
+.ref-links{margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.ref-links h4{margin-bottom:8px;font-size:.9rem}
+.ref-links a{display:block;margin:4px 0;font-size:.85rem}
+footer{text-align:center;padding:32px;font-size:.85rem;opacity:.6;margin-top:32px}
+</style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌓</button>
+<header>
+<div class="container">
+<h1>🧪 Istio Service Mesh - Labs</h1>
+<p>Hands-on completo: EKS + Istio provisioning, BookInfo, traffic management, security, observability, ambient mode, e troubleshooting</p>
+<div class="meta">Generated May 2, 2026 · 9 labs · L100-L300 · Based on istio.io tasks, EKS Blueprints, and field notes</div>
+</div>
+</header>
+<div class="container">
+<nav class="toc">
+<h2>📋 Labs Index</h2>
+<ol start="0">
+<li><span class="badge-level l100">L100</span><a href="#lab0">Provision EKS + Istio</a></li>
+<li><span class="badge-level l100">L100</span><a href="#lab1">BookInfo Deploy + Sidecar Injection</a></li>
+<li><span class="badge-level l200">L200</span><a href="#lab2">Traffic Management</a></li>
+<li><span class="badge-level l200">L200</span><a href="#lab3">Network Resiliency</a></li>
+<li><span class="badge-level l200">L200</span><a href="#lab4">mTLS + AuthorizationPolicy</a></li>
+<li><span class="badge-level l200">L200</span><a href="#lab5">Observability Stack</a></li>
+<li><span class="badge-level l200">L200</span><a href="#lab6">Install Ambient Mode</a></li>
+<li><span class="badge-level l300">L300</span><a href="#lab7">Migrate Sidecar to Ambient</a></li>
+<li><span class="badge-level l300">L300</span><a href="#lab8">Troubleshooting Scenarios</a></li>
+</ol>
+</nav>
+
+<!-- LAB 0 -->
+<section class="lab" id="lab0">
+<span class="badge-level l100">L100</span>
+<span class="badge-real">✅ Based on EKS Blueprints Terraform Pattern</span>
+<h2>Lab 0: Provision EKS + Istio</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Deploy a complete EKS cluster with Istio service mesh via Terraform (EKS Blueprints Istio pattern) or eksdemo CLI. After provisioning, the environment includes EKS, Istio control plane, ingress gateway, and the BookInfo sample app ready for labs.</p>
+</div>
+<div class="prereqs">
+<h4>⚡ Prerequisites</h4>
+<ul>
+<li>AWS CLI configured with a named profile</li>
+<li>Terraform 1.5+ installed</li>
+<li>kubectl and istioctl installed</li>
+<li>~15-20 minutes for provisioning</li>
+</ul>
+</div>
+
+<h3><span class="step-num">1</span>Option A: Terraform (EKS Blueprints)</h3>
+<pre>git clone https://github.com/aws-ia/terraform-aws-eks-blueprints.git
+cd terraform-aws-eks-blueprints/patterns/istio
+
+export AWS_PROFILE=my-aws-profile
+export AWS_REGION=us-east-1
+
+terraform init
+terraform plan
+terraform apply -auto-approve
+
+# Provisions: VPC + EKS (m5.large x3) + Istio (base, istiod, ingress) + IAM roles</pre>
+
+<h3><span class="step-num">2</span>Option B: eksdemo CLI</h3>
+<pre># Create cluster
+eksdemo create cluster istio-lab --instance m5.large --nodes 3
+
+# Install Istio components
+eksdemo install istio-base
+eksdemo install istio-istiod
+eksdemo install istio-ingress</pre>
+
+<h3><span class="step-num">3</span>Option C: AWS Workshop Studio</h3>
+<p>For a guided experience with pre-provisioned infrastructure:</p>
+<pre># Navigate to the workshop:
+# https://catalog.us-east-1.prod.workshops.aws/workshops/296c8da6-8474-4a7d-90c5-10090aa5e392/en-US</pre>
+
+<h3><span class="step-num">4</span>Configure kubectl and verify</h3>
+<pre># Update kubeconfig
+aws eks update-kubeconfig --name istio-lab --region us-east-1
+
+# Verify Istio components
+kubectl get pods -n istio-system
+kubectl get svc -n istio-system
+
+# Verify istioctl
+istioctl version
+istioctl verify-install</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li><code>istiod</code> pod running in <code>istio-system</code></li>
+<li><code>istio-ingressgateway</code> service has an external IP/hostname</li>
+<li><code>istioctl verify-install</code> shows all components healthy</li>
+</ul>
+</div>
+
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://github.com/aws-ia/terraform-aws-eks-blueprints/tree/main/patterns/istio" target="_blank">EKS Blueprints: Istio Pattern</a>
+<a href="https://catalog.us-east-1.prod.workshops.aws/workshops/296c8da6-8474-4a7d-90c5-10090aa5e392/en-US" target="_blank">AWS Workshop: Istio on EKS</a>
+<a href="https://istio.io/latest/docs/setup/getting-started/" target="_blank">Istio: Getting Started</a>
+</div>
+</section>
+
+<!-- LAB 1 -->
+<section class="lab" id="lab1">
+<span class="badge-level l100">L100</span>
+<span class="badge-real">✅ Based on istio.io BookInfo Example</span>
+<h2>Lab 1: BookInfo Deploy + Sidecar Injection</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Deploy the Istio BookInfo sample application, enable automatic sidecar injection, and verify that Envoy proxies are running alongside each application container.</p>
+</div>
+
+<h3><span class="step-num">1</span>Enable sidecar injection</h3>
+<pre># Label the default namespace for automatic sidecar injection
+kubectl label namespace default istio-injection=enabled
+
+# Verify the label
+kubectl get namespace default --show-labels</pre>
+
+<h3><span class="step-num">2</span>Deploy BookInfo</h3>
+<pre># Deploy the BookInfo application
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/platform/kube/bookinfo.yaml
+
+# Wait for pods to be ready
+kubectl get pods -w</pre>
+
+<h3><span class="step-num">3</span>Verify sidecar injection</h3>
+<pre># Each pod should show 2/2 containers (app + istio-proxy)
+kubectl get pods
+
+# Check the sidecar container
+kubectl describe pod -l app=productpage | grep -A5 "istio-proxy"
+
+# Analyze the mesh configuration
+istioctl analyze</pre>
+
+<h3><span class="step-num">4</span>Expose via Istio Gateway</h3>
+<pre># Apply the BookInfo gateway and virtual service
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/networking/bookinfo-gateway.yaml
+
+# Get the ingress gateway URL
+export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+echo "http://$INGRESS_HOST/productpage"</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>All BookInfo pods show <code>2/2</code> READY (app container + istio-proxy sidecar)</li>
+<li><code>istioctl analyze</code> reports no issues</li>
+<li>ProductPage accessible via the ingress gateway URL</li>
+<li>Refreshing the page shows different review styles (v1: no stars, v2: black stars, v3: red stars)</li>
+</ul>
+</div>
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://istio.io/latest/docs/examples/bookinfo/" target="_blank">Istio: BookInfo Application</a>
+<a href="https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/" target="_blank">Istio: Sidecar Injection</a>
+</div>
+</section>
+
+<!-- LAB 2 -->
+<section class="lab" id="lab2">
+<span class="badge-level l200">L200</span>
+<span class="badge-real">✅ Based on istio.io Traffic Management Tasks</span>
+<h2>Lab 2: Traffic Management</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Configure request routing, traffic shifting (canary 90/10), and header-based routing using VirtualService and DestinationRule.</p>
+</div>
+
+<h3><span class="step-num">1</span>Apply destination rules (define subsets)</h3>
+<pre>kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/networking/destination-rule-all.yaml
+
+# Verify subsets
+kubectl get destinationrules -o yaml</pre>
+
+<h3><span class="step-num">2</span>Route all traffic to v1</h3>
+<pre>kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/networking/virtual-service-all-v1.yaml
+
+# Verify: refresh productpage - should always show NO stars (reviews v1)</pre>
+
+<h3><span class="step-num">3</span>Header-based routing (user "jason" sees v2)</h3>
+<pre>kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/networking/virtual-service-reviews-test-v2.yaml
+
+# Verify:
+# - Not logged in: no stars (v1)
+# - Login as "jason": black stars (v2)
+# - Login as anyone else: no stars (v1)</pre>
+
+<h3><span class="step-num">4</span>Traffic shifting - canary 90/10</h3>
+<pre># Route 90% to v1, 10% to v3
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts:
+  - reviews
+  http:
+  - route:
+    - destination:
+        host: reviews
+        subset: v1
+      weight: 90
+    - destination:
+        host: reviews
+        subset: v3
+      weight: 10
+EOF
+
+# Verify: refresh productpage multiple times
+# ~90% no stars (v1), ~10% red stars (v3)</pre>
+
+<h3><span class="step-num">5</span>Cleanup</h3>
+<pre>kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/networking/virtual-service-all-v1.yaml</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>All-v1 routing: productpage always shows no stars</li>
+<li>Header routing: "jason" sees black stars, others see no stars</li>
+<li>Canary 90/10: approximately 90% no stars, 10% red stars over multiple refreshes</li>
+</ul>
+</div>
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://istio.io/latest/docs/tasks/traffic-management/request-routing/" target="_blank">Istio: Request Routing</a>
+<a href="https://istio.io/latest/docs/tasks/traffic-management/traffic-shifting/" target="_blank">Istio: Traffic Shifting</a>
+</div>
+</section>
+
+<!-- LAB 3 -->
+<section class="lab" id="lab3">
+<span class="badge-level l200">L200</span>
+<span class="badge-ai">🤖 AI-Generated Lab (based on istio.io patterns)</span>
+<h2>Lab 3: Network Resiliency</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Configure circuit breaker, retries, timeouts, and fault injection. Test resiliency by injecting a 7-second delay on the ratings service.</p>
+</div>
+
+<h3><span class="step-num">1</span>Apply destination rules</h3>
+<pre>kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/networking/destination-rule-all.yaml</pre>
+
+<h3><span class="step-num">2</span>Inject a 7s delay on ratings (fault injection)</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: ratings
+spec:
+  hosts:
+  - ratings
+  http:
+  - fault:
+      delay:
+        percentage:
+          value: 100.0
+        fixedDelay: 7s
+    route:
+    - destination:
+        host: ratings
+        subset: v1
+EOF
+
+# Verify: productpage takes ~7s to load (reviews waits for ratings)
+# The reviews service has a 10s timeout, so it still works but slowly</pre>
+
+<h3><span class="step-num">3</span>Add a timeout on reviews (2.5s)</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts:
+  - reviews
+  http:
+  - route:
+    - destination:
+        host: reviews
+        subset: v2
+    timeout: 2.5s
+EOF
+
+# Verify: productpage now returns quickly (~2.5s)
+# Reviews section shows "Sorry, product reviews are currently unavailable"
+# because the 2.5s timeout fires before the 7s delay completes</pre>
+
+<h3><span class="step-num">4</span>Configure circuit breaker</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: ratings-cb
+spec:
+  host: ratings
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 1
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
+    outlierDetection:
+      consecutive5xxErrors: 1
+      interval: 5s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 100
+EOF
+
+# Test with fortio (load generator)
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/httpbin/sample-client/fortio-deploy.yaml
+FORTIO_POD=$(kubectl get pods -l app=fortio -o jsonpath='{.items[0].metadata.name}')
+
+# Send 20 concurrent requests
+kubectl exec $FORTIO_POD -c fortio -- fortio load -c 3 -qps 0 -n 20 -loglevel Warning http://ratings:9080/ratings/0
+
+# Look for "Code 503" responses - those are circuit breaker trips</pre>
+
+<h3><span class="step-num">5</span>Cleanup</h3>
+<pre>kubectl delete virtualservice ratings reviews
+kubectl delete destinationrule ratings-cb</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>7s delay: productpage loads slowly (~7s) with ratings delay injected</li>
+<li>2.5s timeout: productpage returns quickly, reviews shows "unavailable"</li>
+<li>Circuit breaker: fortio output shows mix of 200 and 503 responses</li>
+</ul>
+</div>
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://istio.io/latest/docs/tasks/traffic-management/fault-injection/" target="_blank">Istio: Fault Injection</a>
+<a href="https://istio.io/latest/docs/tasks/traffic-management/circuit-breaking/" target="_blank">Istio: Circuit Breaking</a>
+</div>
+</section>
+
+<!-- LAB 4 -->
+<section class="lab" id="lab4">
+<span class="badge-level l200">L200</span>
+<span class="badge-real">✅ Based on istio.io mTLS Migration Task</span>
+<h2>Lab 4: mTLS + AuthorizationPolicy</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Enable STRICT mTLS mesh-wide, create a deny-all authorization policy, then add explicit ALLOW rules for BookInfo service communication.</p>
+</div>
+
+<h3><span class="step-num">1</span>Check current mTLS status</h3>
+<pre># Check mTLS status for all services
+istioctl authn tls-check | head -20
+
+# Default mode is PERMISSIVE - accepts both mTLS and plaintext</pre>
+
+<h3><span class="step-num">2</span>Enable STRICT mTLS mesh-wide</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT
+EOF
+
+# Verify: all connections now require mTLS
+istioctl authn tls-check | head -20</pre>
+
+<h3><span class="step-num">3</span>Create deny-all policy</h3>
+<pre>cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: default
+spec:
+  {}
+EOF
+
+# Verify: productpage should return RBAC: access denied
+curl -s http://$INGRESS_HOST/productpage | head -5</pre>
+
+<h3><span class="step-num">4</span>Add ALLOW rules for BookInfo</h3>
+<pre># Allow ingress gateway to reach productpage
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-productpage
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: productpage
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-reviews
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: reviews
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/bookinfo-productpage"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-ratings
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: ratings
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/bookinfo-reviews"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-details
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: details
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/bookinfo-productpage"]
+EOF
+
+# Verify: productpage works again with full BookInfo chain</pre>
+
+<h3><span class="step-num">5</span>Cleanup</h3>
+<pre>kubectl delete authorizationpolicy deny-all allow-productpage allow-reviews allow-ratings allow-details
+kubectl delete peerauthentication default -n istio-system</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>STRICT mTLS: <code>istioctl authn tls-check</code> shows all connections as mTLS</li>
+<li>deny-all: productpage returns "RBAC: access denied"</li>
+<li>ALLOW rules: productpage works with full BookInfo chain (details + reviews + ratings)</li>
+<li>Unauthorized paths are still denied (e.g., direct access to reviews from outside)</li>
+</ul>
+</div>
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://istio.io/latest/docs/tasks/security/authentication/mtls-migration/" target="_blank">Istio: mTLS Migration</a>
+<a href="https://istio.io/latest/docs/tasks/security/authorization/authz-http/" target="_blank">Istio: HTTP Authorization</a>
+</div>
+</section>
+
+<!-- LAB 5 -->
+<section class="lab" id="lab5">
+<span class="badge-level l200">L200</span>
+<span class="badge-real">✅ Based on istio.io Observability Tasks</span>
+<h2>Lab 5: Observability Stack</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Install Kiali, Jaeger, Prometheus, and Grafana via Istio addons. Generate traffic and visualize the service mesh in Kiali's traffic graph.</p>
+</div>
+
+<h3><span class="step-num">1</span>Install observability addons</h3>
+<pre># Install all addons at once
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/addons/prometheus.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/addons/grafana.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/addons/jaeger.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/addons/kiali.yaml
+
+# Wait for all pods to be ready
+kubectl get pods -n istio-system -w</pre>
+
+<h3><span class="step-num">2</span>Generate traffic</h3>
+<pre># Generate sustained traffic to BookInfo
+for i in $(seq 1 100); do
+  curl -s -o /dev/null "http://$INGRESS_HOST/productpage"
+  sleep 0.5
+done &</pre>
+
+<h3><span class="step-num">3</span>Open Kiali dashboard</h3>
+<pre># Port-forward Kiali
+istioctl dashboard kiali
+
+# Navigate to: Graph > Select namespace "default" > Display: Versioned app graph
+# You should see: productpage -> reviews (v1/v2/v3) -> ratings
+#                  productpage -> details</pre>
+
+<h3><span class="step-num">4</span>Explore Grafana dashboards</h3>
+<pre># Port-forward Grafana
+istioctl dashboard grafana
+
+# Navigate to: Dashboards > Istio > Istio Mesh Dashboard
+# Also check: Istio Service Dashboard, Istio Workload Dashboard</pre>
+
+<h3><span class="step-num">5</span>View traces in Jaeger</h3>
+<pre># Port-forward Jaeger
+istioctl dashboard jaeger
+
+# Select service: productpage.default
+# Click "Find Traces" to see distributed traces across the BookInfo chain</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>Kiali: traffic graph shows all BookInfo services with request rates and response codes</li>
+<li>Grafana: Istio Mesh Dashboard shows global request rate, success rate, and latency</li>
+<li>Jaeger: traces show the full request path (productpage -> reviews -> ratings)</li>
+<li>All addons running in <code>istio-system</code> namespace</li>
+</ul>
+</div>
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://istio.io/latest/docs/tasks/observability/" target="_blank">Istio: Observability Tasks</a>
+<a href="https://kiali.io/docs/" target="_blank">Kiali Documentation</a>
+</div>
+</section>
+
+<!-- LAB 6 -->
+<section class="lab" id="lab6">
+<span class="badge-level l200">L200</span>
+<span class="badge-real">✅ Based on istio.io Ambient Getting Started</span>
+<h2>Lab 6: Install Ambient Mode</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Install Istio ambient mode profile, label a namespace for ambient mesh, verify ztunnel is running, and deploy a waypoint proxy for L7 features.</p>
+</div>
+
+<h3><span class="step-num">1</span>Install ambient profile</h3>
+<pre># Install Istio with ambient profile (adds ztunnel + Istio CNI)
+istioctl install --set profile=ambient --skip-confirmation
+
+# Verify ztunnel DaemonSet
+kubectl get daemonset -n istio-system ztunnel
+kubectl get pods -n istio-system -l app=ztunnel</pre>
+
+<h3><span class="step-num">2</span>Create ambient namespace and deploy app</h3>
+<pre># Create a new namespace for ambient testing
+kubectl create namespace bookinfo-ambient
+kubectl label namespace bookinfo-ambient istio.io/dataplane-mode=ambient
+
+# Deploy BookInfo in the ambient namespace
+kubectl apply -n bookinfo-ambient -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/platform/kube/bookinfo.yaml
+
+# Verify: pods should show 1/1 (NO sidecar - just the app container)
+kubectl get pods -n bookinfo-ambient</pre>
+
+<h3><span class="step-num">3</span>Verify ztunnel is handling traffic</h3>
+<pre># Check ztunnel logs for the namespace
+kubectl logs -n istio-system -l app=ztunnel --tail=20
+
+# Verify mTLS is active via ztunnel
+istioctl ztunnel-config workloads | grep bookinfo-ambient</pre>
+
+<h3><span class="step-num">4</span>Deploy waypoint proxy for L7</h3>
+<pre># Deploy a waypoint proxy for the namespace
+istioctl waypoint apply --namespace bookinfo-ambient --enroll-namespace
+
+# Verify waypoint is running
+kubectl get gateway -n bookinfo-ambient
+kubectl get pods -n bookinfo-ambient -l gateway.networking.k8s.io/gateway-name</pre>
+
+<h3><span class="step-num">5</span>Test L7 features via waypoint</h3>
+<pre># Now you can apply VirtualService rules that work via the waypoint
+cat &lt;&lt;'EOF' | kubectl apply -n bookinfo-ambient -f -
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts:
+  - reviews
+  http:
+  - route:
+    - destination:
+        host: reviews
+        subset: v1
+      weight: 50
+    - destination:
+        host: reviews
+        subset: v3
+      weight: 50
+EOF</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>ztunnel DaemonSet running on all nodes (one pod per node)</li>
+<li>BookInfo pods show <code>1/1</code> (no sidecar) in the ambient namespace</li>
+<li>ztunnel logs show mTLS connections for bookinfo-ambient workloads</li>
+<li>Waypoint proxy running as a Gateway resource</li>
+<li>L7 traffic management (VirtualService) works via waypoint</li>
+</ul>
+</div>
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://istio.io/latest/docs/ambient/getting-started/" target="_blank">Istio: Ambient Getting Started</a>
+<a href="https://istio.io/latest/docs/ambient/usage/waypoint/" target="_blank">Istio: Waypoint Proxies</a>
+</div>
+</section>
+
+<!-- LAB 7 -->
+<section class="lab" id="lab7">
+<span class="badge-level l300">L300</span>
+<span class="badge-ai">🤖 AI-Generated Lab (migration scenario)</span>
+<h2>Lab 7: Migrate Sidecar to Ambient</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Migrate the BookInfo application from sidecar mode (default namespace) to ambient mode. Verify L4 connectivity via ztunnel, add waypoint for L7, and compare resource usage before/after.</p>
+</div>
+
+<h3><span class="step-num">1</span>Capture baseline resource usage (sidecar)</h3>
+<pre># Record resource usage with sidecars
+kubectl top pods -n default --containers | grep istio-proxy
+
+# Count total containers
+kubectl get pods -n default -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .spec.containers[*]}{.name}{" "}{end}{"\n"}{end}'</pre>
+
+<h3><span class="step-num">2</span>Switch namespace from sidecar to ambient</h3>
+<pre># Remove sidecar injection label
+kubectl label namespace default istio-injection-
+
+# Add ambient mode label
+kubectl label namespace default istio.io/dataplane-mode=ambient
+
+# Restart pods to remove sidecars
+kubectl rollout restart deployment -n default</pre>
+
+<h3><span class="step-num">3</span>Verify ambient mode</h3>
+<pre># Pods should now show 1/1 (no sidecar)
+kubectl get pods -n default
+
+# Verify ztunnel is handling traffic
+istioctl ztunnel-config workloads | grep default
+
+# Test connectivity
+curl -s http://$INGRESS_HOST/productpage | head -5</pre>
+
+<h3><span class="step-num">4</span>Add waypoint for L7 features</h3>
+<pre># Deploy waypoint proxy
+istioctl waypoint apply --namespace default --enroll-namespace
+
+# Verify L7 features work (apply a routing rule)
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/networking/destination-rule-all.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/networking/virtual-service-all-v1.yaml
+
+# Verify: productpage should always show no stars (v1 only)</pre>
+
+<h3><span class="step-num">5</span>Compare resource usage (ambient)</h3>
+<pre># Record resource usage without sidecars
+kubectl top pods -n default --containers
+
+# Compare: no more istio-proxy containers
+# Total memory savings: ~128MB * number_of_pods</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>All pods show <code>1/1</code> (sidecars removed)</li>
+<li>mTLS still active via ztunnel (check ztunnel logs)</li>
+<li>L7 routing works via waypoint proxy</li>
+<li>Resource usage reduced (no istio-proxy containers)</li>
+<li>No downtime during migration (rolling restart)</li>
+</ul>
+</div>
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://istio.io/latest/docs/ambient/getting-started/" target="_blank">Istio: Ambient Getting Started</a>
+<a href="https://istio.io/latest/docs/overview/dataplane-modes/" target="_blank">Istio: Data Plane Modes</a>
+</div>
+</section>
+
+<!-- LAB 8 -->
+<section class="lab" id="lab8">
+<span class="badge-level l300">L300</span>
+<span class="badge-ai">🤖 AI-Generated Lab (troubleshooting scenarios)</span>
+<h2>Lab 8: Troubleshooting Scenarios</h2>
+<div class="objective">
+<h4>🎯 Objective</h4>
+<p>Diagnose and fix 4 common Istio misconfigurations. Each scenario creates its own broken environment (dedicated namespace), presents symptoms, requires investigation, and has a specific fix. All scenarios run on the <strong>same cluster provisioned in Lab 0</strong>.</p>
+</div>
+
+<div class="prereqs">
+<h4>⚡ Prerequisites</h4>
+<ul>
+<li><strong>Lab 0 completed</strong> - EKS cluster with Istio running</li>
+<li><strong>Lab 1 completed</strong> - BookInfo deployed in <code>default</code> namespace with sidecars (2/2)</li>
+<li><strong>Lab 6 completed</strong> - Ambient mode installed (required for Scenario 4 only)</li>
+<li>kubectl context pointing to the Lab 0 cluster: <code>kubectl config current-context</code></li>
+</ul>
+</div>
+
+<div style="border-left:4px solid #ff9800;padding:12px 16px;margin:16px 0;background:var(--warn-bg);border-radius:0 8px 8px 0;color:var(--warn-text)">
+<h4>🎯 How This Lab Works</h4>
+<p>Each scenario below creates its own <strong>isolated namespace</strong> (<code>broken-1</code>, <code>broken-2</code>, etc.) with intentional misconfigurations. You investigate the symptoms, find the root cause, and apply the fix. The setup commands at the start of each scenario create the broken state - <strong>run them first, then try to diagnose before looking at the fix</strong>.</p>
+<p>All scenarios use the cluster from Lab 0. No additional infrastructure needed.</p>
+</div>
+
+<h3>Scenario 1: Sidecar Injection Not Working</h3>
+<p><strong>Symptoms:</strong> Pods show <code>1/1</code> instead of <code>2/2</code>. No mTLS, no traffic management.</p>
+<pre># Setup: create namespace without injection label
+kubectl create namespace broken-1
+kubectl apply -n broken-1 -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/platform/kube/bookinfo.yaml
+
+# Investigation
+kubectl get namespace broken-1 --show-labels
+kubectl get pods -n broken-1  # Shows 1/1
+istioctl analyze -n broken-1  # Should warn about missing injection
+
+# Fix
+kubectl label namespace broken-1 istio-injection=enabled
+kubectl rollout restart deployment -n broken-1
+
+# Validate
+kubectl get pods -n broken-1  # Should show 2/2</pre>
+
+<h3>Scenario 2: mTLS STRICT but Missing PeerAuthentication</h3>
+<p><strong>Symptoms:</strong> Services in a non-mesh namespace cannot reach mesh services. Connection refused errors.</p>
+<pre># Setup: enable STRICT mTLS, deploy a client outside the mesh
+kubectl create namespace broken-2
+# (do NOT label for injection)
+kubectl run curl-client -n broken-2 --image=curlimages/curl --command -- sleep 3600
+
+# Apply STRICT mTLS
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: strict-test
+  namespace: default
+spec:
+  mtls:
+    mode: STRICT
+EOF
+
+# Investigation
+kubectl exec -n broken-2 curl-client -- curl -s http://productpage.default:9080/productpage
+# Result: connection reset / refused (non-mesh client can't do mTLS)
+
+# Fix option 1: Add the client to the mesh
+kubectl label namespace broken-2 istio-injection=enabled
+kubectl delete pod curl-client -n broken-2
+kubectl run curl-client -n broken-2 --image=curlimages/curl --command -- sleep 3600
+
+# Fix option 2: Set PERMISSIVE for the specific service
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: productpage-permissive
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: productpage
+  mtls:
+    mode: PERMISSIVE
+EOF
+
+# Validate
+kubectl exec -n broken-2 curl-client -- curl -s http://productpage.default:9080/productpage | head -5</pre>
+
+<h3>Scenario 3: Circuit Breaker Too Aggressive</h3>
+<p><strong>Symptoms:</strong> All requests to a service fail with 503. Service pods are healthy.</p>
+<pre># Setup: apply overly aggressive circuit breaker
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: ratings-aggressive-cb
+spec:
+  host: ratings
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 1
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
+    outlierDetection:
+      consecutive5xxErrors: 1
+      interval: 1s
+      baseEjectionTime: 300s
+      maxEjectionPercent: 100
+EOF
+
+# Investigation
+kubectl get destinationrule ratings-aggressive-cb -o yaml
+# Notice: maxEjectionPercent=100 + consecutive5xxErrors=1 + baseEjectionTime=300s
+# A single error ejects ALL endpoints for 5 minutes
+
+istioctl proxy-config cluster productpage-v1-xxx | grep ratings
+# Check for "outlier_detection" stats
+
+# Fix: relax the circuit breaker
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: ratings-aggressive-cb
+spec:
+  host: ratings
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 10s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+EOF
+
+# Validate: requests succeed again</pre>
+
+<h3>Scenario 4: Waypoint Proxy OOMKilled</h3>
+<p><strong>Symptoms:</strong> Waypoint proxy pod keeps restarting. L7 features intermittently fail in ambient namespace.</p>
+<p><strong>Requires:</strong> Lab 6 completed (ambient mode installed). If you skipped Lab 6, run the ambient install first.</p>
+<pre># Setup: create an ambient namespace with a waypoint that has insufficient resources
+kubectl create namespace broken-4
+kubectl label namespace broken-4 istio.io/dataplane-mode=ambient
+
+# Deploy BookInfo in ambient namespace
+kubectl apply -n broken-4 -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/bookinfo/platform/kube/bookinfo.yaml
+kubectl wait --for=condition=ready pod -l app=productpage -n broken-4 --timeout=60s
+
+# Deploy waypoint with insufficient resources
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: bookinfo-waypoint
+  namespace: broken-4
+  labels:
+    istio.io/waypoint-for: service
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+  - name: mesh
+    port: 15008
+    protocol: HBONE
+EOF
+
+# Investigation
+kubectl get pods -n broken-4 -l gateway.networking.k8s.io/gateway-name
+kubectl describe pod -n broken-4 -l gateway.networking.k8s.io/gateway-name
+# Look for: OOMKilled, Last State: Terminated (reason: OOMKilled)
+
+kubectl top pod -n broken-4 -l gateway.networking.k8s.io/gateway-name
+
+# Fix: increase waypoint resource limits
+# Edit the waypoint deployment or use Helm values to increase memory
+kubectl patch deployment bookinfo-waypoint -n broken-4 --type=json \
+  -p='[{"op":"replace","path":"/spec/template/spec/containers/0/resources/limits/memory","value":"512Mi"}]'
+
+# Validate
+kubectl get pods -n broken-4 -l gateway.networking.k8s.io/gateway-name
+# Pod should be Running without restarts</pre>
+
+<h3>Cleanup (all troubleshooting scenarios)</h3>
+<pre># Remove all troubleshooting namespaces
+kubectl delete namespace broken-1 broken-2 broken-4
+
+# Remove the aggressive circuit breaker from default namespace
+kubectl delete destinationrule ratings-aggressive-cb 2>/dev/null
+
+# Remove test PeerAuthentication resources
+kubectl delete peerauthentication strict-test -n default 2>/dev/null
+kubectl delete peerauthentication productpage-permissive -n default 2>/dev/null</pre>
+
+<div class="validation">
+<h4>✅ Validation</h4>
+<ul>
+<li>Scenario 1: <code>istioctl analyze</code> catches missing injection label. Pods show 2/2 after fix</li>
+<li>Scenario 2: Non-mesh client can reach mesh services after fix (PERMISSIVE or add to mesh)</li>
+<li>Scenario 3: Relaxed circuit breaker allows normal traffic. <code>istioctl proxy-config</code> shows healthy clusters</li>
+<li>Scenario 4: Waypoint pod stable after resource increase. No OOMKilled restarts</li>
+</ul>
+</div>
+<div class="ref-links">
+<h4>📚 References</h4>
+<a href="https://istio.io/latest/docs/ops/diagnostic-tools/" target="_blank">Istio: Diagnostic Tools</a>
+<a href="https://istio.io/latest/docs/ops/common-problems/" target="_blank">Istio: Common Problems</a>
+</div>
+</section>
+
+<section class="lab" id="challenge-mode">
+<h2>🎯 Challenge Mode</h2>
+<div style="border-left:4px solid #ff9800;padding:16px 20px;margin:16px 0;background:var(--warn-bg);border-radius:0 8px 8px 0;color:var(--warn-text)">
+<h4>Completou os labs guiados?</h4>
+<p>Teste seu conhecimento sem guia. Ative <code>#challenge-mentor</code> no chat e peça desafios sobre <strong>Istio Service Mesh (sidecar, ambient, mTLS, traffic management)</strong>.</p>
+<p>O mentor vai gerar cenários novos no mesmo domínio - variações que você não viu nos labs, com root causes diferentes e sem guia passo-a-passo.</p>
+<p style="margin-top:12px"><strong>Exemplo:</strong> "Quero desafios de Istio troubleshooting Lv300"</p>
+</div>
+</section>
+
+</div>
+<footer>
+<p>Istio Service Mesh Labs Portal - Generated May 2, 2026</p>
+<p>9 labs · L100-L300 · Based on istio.io tasks, EKS Blueprints, and field notes</p>
+</footer>
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);
+  localStorage.setItem('istio-labs-theme',t);
+}
+(function(){
+  const s=localStorage.getItem('istio-labs-theme');
+  if(s)document.documentElement.setAttribute('data-theme',s);
+})();
+</script>
+</body>
+</html>
