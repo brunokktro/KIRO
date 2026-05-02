@@ -103,9 +103,8 @@ O `SKILL.md` contém um frontmatter YAML (`name`, `description`) e o corpo com i
 | [english-mentor](skills/english-mentor/) | Tutor de inglês americano baseado em padrões IELTS/TOEIC. Revisa gramática, sugere correções. | `#english-mentor` ou "review english" |
 | [spanish-mentor](skills/spanish-mentor/) | Mentor de gramática espanhola baseado nas regras da Real Academia Española (RAE). | `#spanish-mentor` ou "corregir español" |
 | [kubestronaut-coach](skills/kubestronaut-coach/) | Coach para certificações Kubernetes (CKA, CKAD, CKS, KCNA, KCSA). Foco em velocidade e atalhos para provas. | `#kubestronaut-coach` ou "desafio CKA" |
-| [tech-mentor](skills/tech-mentor/) | Mentor técnico para labs hands-on de Kubernetes/EKS. Gera cenários progressivos de troubleshooting. | `#tech-mentor` ou "treino k8s" |
-| [training-mentor](skills/training-mentor/) | Gera portais HTML de estudo a partir de uma lista de tópicos. Inclui referências oficiais e vídeos. | `#training-mentor` ou "training content" |
 | [challenge-mentor](skills/challenge-mentor/) | Mentor técnico para desafios hands-on de Kubernetes/EKS. Gera cenários progressivos de troubleshooting com hints graduais. | `#challenge-mentor` ou "desafio k8s" |
+| [training-mentor](skills/training-mentor/) | Gera portais HTML de estudo a partir de uma lista de tópicos. Inclui referências oficiais e vídeos. | `#training-mentor` ou "training content" |
 | [learning-curator](skills/learning-curator/) | Gerenciador de fila de estudo pessoal. Captura links/artigos/repos, prioriza por entregas e gera dashboards. | `#learning-curator` ou "learning queue" |
 | [bookmark-curator](skills/bookmark-curator/) | Processa exports de bookmarks do Firefox, categoriza, resume e gera um feed visual HTML. | `#bookmark-curator` ou "organizar bookmarks" |
 | [tech-docs](skills/tech-docs/) | Gera documentação técnica estruturada a partir de código de infraestrutura (Terraform, K8s, ArgoCD). | `#tech-docs` ou "documentar projeto" |
@@ -196,9 +195,8 @@ KIRO/
 │   ├── english-mentor/           # Tutor de inglês
 │   ├── spanish-mentor/           # Mentor de espanhol
 │   ├── kubestronaut-coach/       # Coach de certificações K8s
-│   ├── tech-mentor/              # Labs hands-on K8s
+│   ├── challenge-mentor/           # Desafios hands-on K8s com hints progressivos
 │   ├── training-mentor/          # Portais de estudo HTML (3 templates aprovados)
-│   ├── challenge-mentor/          # Desafios hands-on K8s com hints progressivos
 │   ├── learning-curator/          # Fila de estudo pessoal com priorização
 │   ├── bookmark-curator/         # Curadoria de bookmarks
 │   ├── tech-docs/                # Gerador de documentação técnica
