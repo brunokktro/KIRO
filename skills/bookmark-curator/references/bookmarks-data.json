@@ -1,74 +1,32 @@
 [
   {
-    "url": "https://docs.aws.amazon.com/license-manager/latest/userguide/host-resource-groups.html",
-    "title": "Host resource groups in AWS License Manager",
+    "url": "https://kubernetes.io/docs/concepts/overview/",
+    "title": "Kubernetes Overview",
+    "domain": "kubernetes.io",
+    "excerpt": "Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.",
+    "summary": "Official Kubernetes documentation overview covering core concepts, architecture, and getting started guides.",
+    "tags": ["kubernetes", "containers", "orchestration"],
+    "date": "2026-01-15",
+    "source": "bookmark-curator"
+  },
+  {
+    "url": "https://istio.io/latest/docs/overview/what-is-istio/",
+    "title": "What is Istio?",
+    "domain": "istio.io",
+    "excerpt": "Istio extends Kubernetes to establish a programmable, application-aware network.",
+    "summary": "Istio service mesh overview explaining the control plane, data plane, and core features like traffic management, security, and observability.",
+    "tags": ["istio", "service-mesh", "kubernetes", "security"],
+    "date": "2026-02-20",
+    "source": "bookmark-curator"
+  },
+  {
+    "url": "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html",
+    "title": "What is Amazon EKS?",
     "domain": "docs.aws.amazon.com",
-    "excerpt": "Amazon EC2 Dedicated Hosts are physical servers with EC2 instance capacity fully dedicated to your use. A host resource group is a collection of Dedicated Hosts that you can manage as a single entity.",
-    "summary": "Dedicated Hosts managed as a single entity via License Manager. Automates host allocation and instance launches. You can add existing Dedicated Hosts to a host resource group and take advantage of automated host management.",
-    "tags": ["aws", "licensing", "infrastructure"],
-    "date": "2026-03-14"
-  },
-  {
-    "url": "https://aws.amazon.com/blogs/mt/aws-partners-determine-aws-support-plans-in-organization/",
-    "title": "How AWS Partners can determine AWS Support plans in an organization",
-    "domain": "aws.amazon.com",
-    "excerpt": "Solutions providers who engage with their end customers in a resale arrangement must manage different business models and support delivery models. This post shares a technical workaround to determine support plans.",
-    "summary": "Technical workaround for solution providers to determine support plan subscriptions of each member account in AWS Organizations. Covers shared and dedicated resale models and how to bill end customers correctly.",
-    "tags": ["aws", "partners", "organizations"],
-    "date": "2026-03-14"
-  },
-  {
-    "url": "https://www.allthingsdistributed.com/2022/11/amazon-1998-distributed-computing-manifesto.html",
-    "title": "The Distributed Computing Manifesto",
-    "domain": "allthingsdistributed.com",
-    "excerpt": "Today, I am publishing the Distributed Computing Manifesto, a canonical document from the early days of Amazon that transformed the architecture of Amazon's ecommerce platform.",
-    "summary": "Canonical document from the early days of Amazon that transformed the architecture of Amazon's ecommerce platform. Published by Werner Vogels, it highlights the challenges faced at the end of the 20th century and hints at the distributed systems direction Amazon would take.",
-    "tags": ["aws", "architecture", "history"],
-    "date": "2026-03-14"
-  },
-  {
-    "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html",
-    "title": "10 Lessons from 10 Years of AWS",
-    "domain": "allthingsdistributed.com",
-    "excerpt": "Looking back over the past 10 years, there are hundreds of lessons that we've learned about building and operating services that need to be secure, reliable, scalable, with predictable performance at the lowest possible cost.",
-    "summary": "Werner Vogels shares key lessons from 10 years of building AWS. Covers building evolvable systems, APIs as contracts, security as everyone's job, and operational excellence. With over a million active customers per month, there is no compression algorithm for experience.",
-    "tags": ["aws", "architecture", "best-practices"],
-    "date": "2026-03-14"
-  },
-  {
-    "url": "https://www.allthingsdistributed.com/2024/08/continuous-reinvention-a-brief-history-of-block-storage-at-aws.html",
-    "title": "Continuous reinvention: A brief history of block storage at AWS",
-    "domain": "allthingsdistributed.com",
-    "excerpt": "Marc Olson has been part of the team shaping Elastic Block Store (EBS) for over a decade. In that time, he's helped to drive the dramatic evolution of EBS from a simple block storage service to a massive network storage system.",
-    "summary": "Marc Olson provides an insider perspective on EBS evolution from simple block storage to a massive network storage system delivering over 140 trillion daily operations. Covers queueing theory, instrumentation, and how constraints breed creative solutions.",
-    "tags": ["aws", "storage", "architecture"],
-    "date": "2026-03-14"
-  },
-  {
-    "url": "https://www.allthingsdistributed.com/2024/11/aws-lambda-turns-10-a-rare-look-at-the-doc-that-started-it.html",
-    "title": "AWS Lambda turns 10: A rare look at the doc that started it",
-    "domain": "allthingsdistributed.com",
-    "excerpt": "We saw that customers had entire EC2 fleets sitting idle, waiting to run simple functions like writing to a database or processing a file. It was inefficient, and we knew we could do better.",
-    "summary": "Origin story of AWS Lambda. Customers had entire EC2 fleets sitting idle, waiting to run simple functions. AWS challenged themselves to build a service that let customers focus on application logic, not infrastructure. A rare look at the internal document that started it all.",
-    "tags": ["aws", "serverless", "history"],
-    "date": "2026-03-14"
-  },
-  {
-    "url": "https://www.allthingsdistributed.com/2023/07/building-and-operating-a-pretty-big-storage-system.html",
-    "title": "Building and operating a pretty big storage system called S3",
-    "domain": "allthingsdistributed.com",
-    "excerpt": "Andy Warfield, VP and distinguished engineer at S3, covers three distinct perspectives on scale that come along with building and operating a storage system the size of S3.",
-    "summary": "Andy Warfield (VP at S3) covers three distinct perspectives on scale from his USENIX FAST '23 keynote. Provides unique insights into why building at S3 scale requires fundamentally different engineering approaches. Includes full video recording.",
-    "tags": ["aws", "storage", "architecture"],
-    "date": "2026-03-14"
-  },
-  {
-    "url": "https://blog.12min.com/br/resumo-do-livro-como-ter-um-dia-ideal-de-caroline-webb-em-pdf/",
-    "title": "Resumo do Livro Como Ter Um Dia Ideal",
-    "domain": "blog.12min.com",
-    "excerpt": "Caroline Webb ensina como superar estresse e dificuldades usando ciencia comportamental. A diferenca e que algumas pessoas conseguem diminuir ou ate mesmo superar o estresse que nos levam a essa situacao.",
-    "summary": "Resumo do livro de Caroline Webb que ensina como superar estresse e dificuldades usando ciencia comportamental. Aborda como ter dias mais produtivos e positivos aplicando principios de neurociencia e psicologia.",
-    "tags": ["productivity", "books"],
-    "date": "2026-03-14"
+    "excerpt": "Amazon Elastic Kubernetes Service is a managed Kubernetes service that makes it easy to run Kubernetes on AWS.",
+    "summary": "AWS EKS documentation covering cluster management, networking, security, and integration with AWS services.",
+    "tags": ["aws", "eks", "kubernetes", "managed-service"],
+    "date": "2026-03-10",
+    "source": "bookmark-curator"
   }
 ]
