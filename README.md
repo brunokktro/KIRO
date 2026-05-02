@@ -248,7 +248,7 @@ O Learning Ecosystem resolve isso com 3 skills e 1 agent que funcionam como um p
 
 ### O ciclo de aprendizado
 
-**capturar → priorizar → estudar → praticar → validar**
+**salvar conteúdo → curar & priorizar → gerar material estruturado → prática guiada → desafios sem guia → voltar a curar mais**
 
 ![Learning Ecosystem](docs/learning-ecosystem.png)
 
