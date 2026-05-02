@@ -2,6 +2,19 @@
 
 Uma coleção de customizações para o [Kiro](https://kiro.dev) - a IDE com assistente de IA integrado. Este repositório contém Skills (capacidades especializadas), Powers (integrações MCP) e templates de Steering (personalização do assistente) prontos para uso.
 
+## Sumário
+
+- [O que é o Kiro?](#o-que-é-o-kiro)
+- [Steering - Personalizando seu Assistente](#steering---personalizando-seu-assistente)
+- [Skills - Capacidades Especializadas](#skills---capacidades-especializadas)
+- [Powers - Integrações MCP](#powers---integrações-mcp)
+- [Estrutura do Repositório](#estrutura-do-repositório)
+- [🧠 Learning Ecosystem Skills](#-learning-ecosystem-skills)
+- [🤖 Agents](#-agents)
+- [Como Criar sua Própria Skill](#como-criar-sua-própria-skill)
+- [Contribuindo](#contribuindo)
+- [Licença](#licença)
+
 ## O que é o Kiro?
 
 [Kiro](https://kiro.dev) é uma IDE com assistente de IA que vai muito além de escrever código. Com Skills, Powers e Steering, o Kiro se transforma em um assistente pessoal completo - capaz de preparar você pra certificações, revisar gramática em outros idiomas, curar bookmarks, gerar documentação técnica, gerenciar pipelines de vendas e muito mais. Desenvolvedores são o público principal, mas as possibilidades de automação e produtividade se estendem a qualquer profissional.
