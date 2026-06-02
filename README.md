@@ -8,6 +8,7 @@ Uma coleção de customizações para o [Kiro](https://kiro.dev) - a IDE com ass
 - [🎯 Steering - Personalizando seu Assistente](#steering---personalizando-seu-assistente)
 - [🧩 Skills - Capacidades Especializadas](#skills---capacidades-especializadas)
 - [⚡ Powers - Integrações MCP](#powers---integrações-mcp)
+- [🔄 AWS Transform - Custom Definitions](#-aws-transform---custom-definitions)
 - [📂 Estrutura do Repositório](#estrutura-do-repositório)
 - [🧠 Learning Ecosystem Skills](#-learning-ecosystem-skills)
 - [🤖 Agents](#-agents)
@@ -206,6 +207,41 @@ A maioria dos Powers funciona plug-and-play sem nenhuma configuração adicional
 
 ---
 
+## 🔄 AWS Transform - Custom Definitions
+
+[AWS Transform](https://aws.amazon.com/transform/) usa AI agents para analisar e transformar código automaticamente. Custom Transformation Definitions (TDs) permitem criar transformations específicas para casos de uso que o catálogo padrão não cobre.
+
+### Custom TDs neste repositório
+
+| TD | Descrição | Uso |
+|----|-----------|-----|
+| [eks-version-upgrade-readiness](transforms/atx-td-eks-upgrade/) | Analisa e transforma manifests K8s, Helm charts, Terraform e CDK para compatibilidade com uma versão target do EKS. Detecta APIs deprecadas, atualiza campos, valida addons e gera migration report. | `atx custom def exec -n eks-version-upgrade-readiness` |
+
+### Relação com o k8s-healthcheck Power
+
+- **k8s-healthcheck Power** = analisa o cluster RODANDO (runtime health, 64 checks em 8 pilares)
+- **ATX TD eks-upgrade** = transforma o CÓDIGO antes do upgrade (code readiness, API migrations)
+
+Juntos, oferecem upgrade end-to-end: código preparado + cluster validado.
+
+### Como usar
+
+```bash
+# Transformar repo para compatibilidade com EKS 1.32
+atx custom def exec \
+  -n eks-version-upgrade-readiness \
+  -p /path/to/customer-repo \
+  -x -t \
+  --configuration 'additionalPlanContext=Target EKS version 1.32. Upgrade from 1.28.'
+
+# Apenas análise (sem modificar arquivos)
+atx custom def exec \
+  -n eks-version-upgrade-readiness \
+  -p /path/to/customer-repo \
+  -x -t \
+  --configuration 'additionalPlanContext=Target EKS version 1.32. Analysis only - do not modify files.'
+```
+
 ## Estrutura do Repositório
 
 ```
@@ -237,6 +273,8 @@ KIRO/
     ├── power-aws-diagram/        # AWS architecture diagrams
     ├── power-research-assistant/ # Deep research with source verification
     └── power-ticktick/           # TickTick task management (Eisenhower Matrix)
+├── transforms/
+│   └── atx-td-eks-upgrade/       # ATX Custom TD: EKS version upgrade code migration
 ├── examples/
 │   ├── nginx-migration/          # Portal de migração NGINX Ingress → AWS LBC
 │   ├── istio/                    # Portal de Istio Service Mesh no EKS
