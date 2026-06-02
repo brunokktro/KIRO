@@ -1,41 +1,41 @@
 # ATX Custom TD: EKS Version Upgrade Readiness & Code Migration
 
-## Objetivo
+## Purpose
 
-Custom Transformation Definition para o AWS Transform que analisa e transforma código de clientes (manifests K8s, Helm charts, Terraform, CDK, Kustomize) para compatibilidade com uma versão target do Amazon EKS/Kubernetes.
+Custom Transformation Definition for AWS Transform that analyzes and transforms customer code (K8s manifests, Helm charts, Terraform, CDK, Kustomize) for compatibility with a target Amazon EKS/Kubernetes version.
 
-## Fluxo da TD
+## Workflow
 
 ```text
-Input: Repo do cliente + Target EKS version (via additionalPlanContext)
+Input: Customer repo + Target EKS version (via additionalPlanContext)
   |
-  +-- 1. Scan: identifica todos os manifests/charts/configs
-  +-- 2. Detect: mapeia APIs deprecadas/removidas na versao target
-  +-- 3. Transform: atualiza apiVersions, campos, e configs automaticamente
+  +-- 1. Scan: identify all manifests/charts/configs
+  +-- 2. Detect: map deprecated/removed APIs for the target version
+  +-- 3. Transform: update apiVersions, fields, and configs automatically
   +-- 4. Validate: dry-run / helm template / terraform validate
-  +-- 5. Report: gera relatorio de breaking changes + acoes manuais
+  +-- 5. Report: generate breaking changes report + manual action items
 ```
 
-## Uso
+## Usage
 
 ```bash
-atx custom def exec \
-  -n eks-version-upgrade-readiness \
-  -p /path/to/customer-repo \
-  -x -t \
+atx custom def exec \\
+  -n eks-version-upgrade-readiness \\
+  -p /path/to/customer-repo \\
+  -x -t \\
   --configuration 'additionalPlanContext=Target EKS version 1.32. Upgrade from 1.28.'
 ```
 
-## Complemento ao EKS Upgrade Controller
+## Complement to the EKS Upgrade Controller
 
-- **Upgrade Controller** = cuida do CLUSTER (control plane + data plane version)
-- **Esta TD** = cuida do CODIGO (manifests, charts, configs que rodam NO cluster)
+- **Upgrade Controller** = handles the CLUSTER (control plane + data plane version upgrades)
+- **This TD** = handles the CODE (manifests, charts, configs that run ON the cluster)
 
-Juntos, oferecem upgrade end-to-end: codigo preparado + cluster atualizado automaticamente.
+Together, they provide end-to-end upgrade readiness: code prepared + cluster upgraded automatically.
 
-## Arquivos de Referencia
+## Reference Files
 
-- `api-removals-by-version.md` - Tabela completa de APIs removidas por versao K8s
-- `eks-specific-changes.md` - Mudancas especificas do EKS por versao
-- `examples-before-after.md` - Exemplos de transformacao (antes/depois)
-- `td-description.md` - Descricao e prompt para criacao da TD com `atx -t`
+- `api-removals-by-version.md` - Complete table of APIs removed per K8s version (1.16 through 1.36)
+- `eks-specific-changes.md` - EKS-specific changes per version + addon compatibility matrix
+- `examples-before-after.md` - 8 concrete transformation examples (before/after)
+- `td-description.md` - Description and prompt for creating the TD with `atx -t`
