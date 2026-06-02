@@ -8,11 +8,11 @@ Uma coleção de customizações para o [Kiro](https://kiro.dev) - a IDE com ass
 - [🎯 Steering - Personalizando seu Assistente](#steering---personalizando-seu-assistente)
 - [🧩 Skills - Capacidades Especializadas](#skills---capacidades-especializadas)
 - [⚡ Powers - Integrações MCP](#powers---integrações-mcp)
-- [🔄 AWS Transform - Custom Definitions](#-aws-transform---custom-definitions)
 - [📂 Estrutura do Repositório](#estrutura-do-repositório)
 - [🧠 Learning Ecosystem Skills](#-learning-ecosystem-skills)
 - [🤖 Agents](#-agents)
 - [🛠️ Como Criar sua Própria Skill](#como-criar-sua-própria-skill)
+- [🔄 AWS Transform - Custom Definitions](#-aws-transform---custom-definitions)
 - [🤝 Contribuindo](#contribuindo)
 - [📄 Licença](#licença)
 
@@ -207,41 +207,6 @@ A maioria dos Powers funciona plug-and-play sem nenhuma configuração adicional
 
 ---
 
-## 🔄 AWS Transform - Custom Definitions
-
-[AWS Transform](https://aws.amazon.com/transform/) usa AI agents para analisar e transformar código automaticamente. Custom Transformation Definitions (TDs) permitem criar transformations específicas para casos de uso que o catálogo padrão não cobre.
-
-### Custom TDs neste repositório
-
-| TD | Descrição | Uso |
-|----|-----------|-----|
-| [eks-version-upgrade-readiness](transforms/atx-td-eks-upgrade/) | Analisa e transforma manifests K8s, Helm charts, Terraform e CDK para compatibilidade com uma versão target do EKS. Detecta APIs deprecadas, atualiza campos, valida addons e gera migration report. | `atx custom def exec -n eks-version-upgrade-readiness` |
-
-### Relação com o k8s-healthcheck Power
-
-- **k8s-healthcheck Power** = analisa o cluster RODANDO (runtime health, 64 checks em 8 pilares)
-- **ATX TD eks-upgrade** = transforma o CÓDIGO antes do upgrade (code readiness, API migrations)
-
-Juntos, oferecem upgrade end-to-end: código preparado + cluster validado.
-
-### Como usar
-
-```bash
-# Transformar repo para compatibilidade com EKS 1.32
-atx custom def exec \
-  -n eks-version-upgrade-readiness \
-  -p /path/to/customer-repo \
-  -x -t \
-  --configuration 'additionalPlanContext=Target EKS version 1.32. Upgrade from 1.28.'
-
-# Apenas análise (sem modificar arquivos)
-atx custom def exec \
-  -n eks-version-upgrade-readiness \
-  -p /path/to/customer-repo \
-  -x -t \
-  --configuration 'additionalPlanContext=Target EKS version 1.32. Analysis only - do not modify files.'
-```
-
 ## Estrutura do Repositório
 
 ```
@@ -400,6 +365,41 @@ Use a skill `skill-factory` incluída neste repo para criar novas skills:
 Ou crie manualmente seguindo a [especificação Agent Skills](https://agentskills.io/home).
 
 ---
+
+## 🔄 AWS Transform - Custom Definitions
+
+[AWS Transform](https://aws.amazon.com/transform/) usa AI agents para analisar e transformar código automaticamente. Custom Transformation Definitions (TDs) permitem criar transformations específicas para casos de uso que o catálogo padrão não cobre.
+
+### Custom TDs neste repositório
+
+| TD | Descrição | Uso |
+|----|-----------|-----|
+| [eks-version-upgrade-readiness](transforms/atx-td-eks-upgrade/) | Analisa e transforma manifests K8s, Helm charts, Terraform e CDK para compatibilidade com uma versão target do EKS. Detecta APIs deprecadas, atualiza campos, valida addons e gera migration report. | `atx custom def exec -n eks-version-upgrade-readiness` |
+
+### Relação com o k8s-healthcheck Power
+
+- **k8s-healthcheck Power** = analisa o cluster RODANDO (runtime health, 64 checks em 8 pilares)
+- **ATX TD eks-upgrade** = transforma o CÓDIGO antes do upgrade (code readiness, API migrations)
+
+Juntos, oferecem upgrade end-to-end: código preparado + cluster validado.
+
+### Como usar
+
+```bash
+# Transformar repo para compatibilidade com EKS 1.32
+atx custom def exec \
+  -n eks-version-upgrade-readiness \
+  -p /path/to/customer-repo \
+  -x -t \
+  --configuration 'additionalPlanContext=Target EKS version 1.32. Upgrade from 1.28.'
+
+# Apenas análise (sem modificar arquivos)
+atx custom def exec \
+  -n eks-version-upgrade-readiness \
+  -p /path/to/customer-repo \
+  -x -t \
+  --configuration 'additionalPlanContext=Target EKS version 1.32. Analysis only - do not modify files.'
+```
 
 ## Contribuindo
 
