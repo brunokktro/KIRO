@@ -173,11 +173,13 @@ power-name/
 
 ### Como instalar
 
-1. Copie a pasta do Power desejado (ex: `powers/github-power/`) para `<KIRO_HOME>/powers/installed/`
-2. Abra o `mcp.json` dentro do Power e substitua os placeholders (ex: `<YOUR_GITHUB_PAT>`) pelas suas chaves
-3. Reinicie o Kiro para reconectar os MCP servers
+1. Copie a pasta do Power desejado (ex: `powers/k8s-healthcheck/`) para `<KIRO_HOME>/powers/installed/`
+2. Reinicie o Kiro para reconectar os MCP servers
+3. Se o Power exigir configuração (veja tabela de pré-requisitos abaixo), edite o `mcp.json` com suas credenciais
 
-> 💡 Pode fazer isso direto pelo Kiro: cole no chat *"instalar o power github-power"* - o agente copia os arquivos e te orienta sobre as chaves necessárias.
+A maioria dos Powers funciona plug-and-play sem nenhuma configuração adicional. Apenas alguns exigem chaves ou credenciais específicas (como o github-power que precisa de um Personal Access Token).
+
+> 💡 Pode fazer isso direto pelo Kiro: cole no chat *"instalar o power k8s-healthcheck"* - o agente copia os arquivos pra você.
 
 > 💡 Explore mais Powers no [Kiro Powers Hub](https://kiro.dev/powers/)
 
