@@ -16,6 +16,60 @@ The source tool (Terraform, CFN, Pulumi, Click-Ops) is irrelevant - ACK reads th
 
 ---
 
+## Step 0 — Validate ACK Documentation Freshness (MANDATORY)
+
+Run BEFORE generating any adoption manifest. ACK ships new fields without bumping the API
+version, so a manifest written from a stale skill snapshot can fail reconciliation with
+`Terminal: True` after apply. This step is non-skippable.
+
+### 0.1 — Service controllers matrix
+
+Fetch and inspect the [ACK service controllers status](https://aws-controllers-k8s.github.io/community/docs/community/services/) page:
+
+1. Confirm the target service is listed.
+2. Confirm its maintenance phase:
+   - **GENERALLY AVAILABLE** → safe to adopt in production.
+   - **PREVIEW** → adopt only in non-prod; expect breaking changes.
+   - **MAINTENANCE** → community-supported, validate carefully.
+3. If the service is missing or in PREVIEW/MAINTENANCE → flag this in the output before proceeding.
+
+### 0.2 — Per-service schema diff (current vs. skill examples)
+
+For the target Kind, fetch the current API definition from the upstream repo:
+
+```
+https://github.com/aws-controllers-k8s/<service>-controller/blob/main/apis/v1alpha1/<kind>_types.go
+```
+
+(Or browse the rendered docs at https://aws-controllers-k8s.github.io/community/reference/.)
+
+Compare against the example in this skill:
+
+| Validation | Action |
+|-----------|--------|
+| Field used in skill example NOT in current spec | Remove from generated manifest + flag deprecation |
+| Required field in current spec NOT in skill example | Add to generated manifest + warn user |
+| New optional field with adoption value (e.g., new identifier in status) | Update `references/adoption-fields-ref.md` |
+| API version bumped (e.g., v1alpha1 → v1beta1) | Update `apiVersion` in manifest + flag |
+
+### 0.3 — Record freshness in generated YAML
+
+Add a comment header to the generated manifest with the validation timestamp:
+
+```yaml
+# ACK adoption manifest
+# Service controller status checked: <ISO timestamp>
+# Schema validated against: aws-controllers-k8s/<service>-controller@main
+apiVersion: <service>.services.k8s.aws/v1alpha1
+kind: <Kind>
+...
+```
+
+If Step 0 surfaces any change → present a summary to the user and ask for confirmation
+before emitting the final manifest.
+
+---
+
 ## Prerequisites
 
 - ACK controller for the target service installed (via EKS Capabilities or Helm)
