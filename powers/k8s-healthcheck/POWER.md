@@ -19,8 +19,13 @@ This Power enables comprehensive health checks and best practices validation for
 **Based on:**
 - [Kubernetes Configuration Good Practices](https://kubernetes.io/blog/2025/11/25/configuration-good-practices/)
 - [Kubernetes Setup Best Practices](https://kubernetes.io/docs/setup/best-practices/)
+- [Kubernetes Release Notes (CHANGELOG)](https://kubernetes.io/releases/notes/)
 - [AWS Well-Architected Container Build Lens](https://docs.aws.amazon.com/wellarchitected/latest/container-build-lens/container-build-lens.html)
 - [Amazon EKS Best Practices Guide](https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html)
+- [Amazon EKS Kubernetes versions](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
+- [EKS Standard Support](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions-standard.html)
+- [EKS Extended Support](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions-extended.html)
+- [EKS Kubernetes release calendar](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-release-calendar.html)
 
 ---
 
@@ -73,6 +78,56 @@ AWS EKS-specific operations and insights.
 ---
 
 ## Health Check Workflow
+
+### Step 0 — Documentation Freshness Check (HARD GATE)
+
+Run BEFORE any cluster validation. This step is mandatory and non-skippable - it ensures the
+checks are aligned with the latest authoritative guidance, not the snapshot baked into the
+Power at write time.
+
+For each URL in the "Based on:" section above:
+
+1. Fetch the page (via `fetch` MCP).
+2. Extract the `Last-Modified` HTTP header OR the visible "Last updated" / publication date in the document.
+3. Compare against the date this Power was last updated (frontmatter or git log of `POWER.md`).
+4. If ANY source is newer than the Power's last update → REPORT to the user before proceeding:
+   - Which source(s) changed
+   - What changed (summarize the delta if visible)
+   - Recommendation to refresh the Power before relying on the findings
+5. Record the freshness-check timestamp in the report header (audit trail).
+
+**Doc set to check (cross-references all pillars):**
+
+| Pillar | Authoritative source(s) |
+|--------|------------------------|
+| Security | EKS Best Practices Guide; Kubernetes Configuration Good Practices |
+| Reliability | EKS Best Practices Guide; Kubernetes Configuration Good Practices |
+| Networking | EKS Best Practices Guide |
+| Cost | EKS Best Practices Guide; EKS Standard/Extended Support pricing pages |
+| Upgrades | EKS Kubernetes versions; EKS release calendar; K8s CHANGELOG (target version) |
+| Configuration | Kubernetes Configuration Good Practices |
+| Image Build | AWS Well-Architected Container Build Lens |
+| Scalability | Kubernetes Setup Best Practices; EKS Best Practices Guide |
+
+**Output of Step 0 (always shown in report header):**
+
+```
+## Documentation Freshness Check
+
+Performed at: <ISO timestamp>
+Power version baseline: <date>
+
+| Source | Last updated | Status |
+|--------|-------------|--------|
+| EKS Kubernetes versions | 2026-MM-DD | aligned |
+| K8s CHANGELOG (target) | 2026-MM-DD | NEWER - review |
+| ... | | |
+```
+
+If everything is aligned → proceed to Step 1.
+If anything changed → ask user: "Proceed with current Power baseline, or pause to refresh?"
+
+---
 
 ### Step 1: Determine Cluster Type
 
