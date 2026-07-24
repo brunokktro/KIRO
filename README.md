@@ -239,7 +239,8 @@ KIRO/
     ├── power-research-assistant/ # Deep research with source verification
     └── power-ticktick/           # TickTick task management (Eisenhower Matrix)
 ├── transforms/
-│   └── atx-td-eks-upgrade/       # ATX Custom TD: EKS version upgrade code migration
+│   ├── atx-td-eks-upgrade/       # ATX Custom TD: EKS version upgrade code migration
+│   └── atx-td-ack-adoption/      # ATX Custom TD: ACK Resource Adoption from IaC (+ kro RGDs)
 ├── examples/
 │   ├── nginx-migration/          # Portal de migração NGINX Ingress → AWS LBC
 │   ├── istio/                    # Portal de Istio Service Mesh no EKS
@@ -375,6 +376,9 @@ Ou crie manualmente seguindo a [especificação Agent Skills](https://agentskill
 | TD | Descrição | Uso |
 |----|-----------|-----|
 | [eks-version-upgrade-readiness](transforms/atx-td-eks-upgrade/) | Analisa e transforma manifests K8s, Helm charts, Terraform e CDK para compatibilidade com uma versão target do EKS. Detecta APIs deprecadas, atualiza campos, valida addons e gera migration report. | `atx custom def exec -n eks-version-upgrade-readiness` |
+| [ack-resource-adoption-from-iac](transforms/atx-td-ack-adoption/) | Gera manifests de adoção ACK (`adopt-or-create` + `deletion-policy: retain`) a partir de CloudFormation, Terraform e Pulumi, trazendo recursos AWS existentes pra gestão GitOps sem recriar nada. Modules e nested stacks viram ResourceGraphDefinitions do [kro](https://kro.run). | `atx custom def exec -n ack-resource-adoption-from-iac` |
+
+> 🚀 Ambos os TDs foram submetidos ao repositório oficial [aws-samples/aws-transform-custom-samples](https://github.com/aws-samples/aws-transform-custom-samples): [PR #72](https://github.com/aws-samples/aws-transform-custom-samples/pull/72) (EKS Upgrade Readiness) e [PR #74](https://github.com/aws-samples/aws-transform-custom-samples/pull/74) (ACK Resource Adoption).
 
 ### Relação com o k8s-healthcheck Power
 
@@ -400,6 +404,46 @@ atx custom def exec \
   -x -t \
   --configuration 'additionalPlanContext=Target EKS version 1.32. Analysis only - do not modify files.'
 ```
+
+### Como testar um Custom TD (playbook E2E)
+
+Método usado para validar os dois TDs deste repo de ponta a ponta - cada TD tem seu `BENCHMARKS.md` com os resultados reais. O princípio: **plantar incompatibilidades conhecidas, deixar o agente transformar, e auditar cada mudança com validadores externos.**
+
+```bash
+# 1. Crie um repo de teste com casos CONHECIDOS (deprecated APIs, modules, edge cases)
+#    e commite o baseline - o atx exige git, e o baseline vira sua trilha de auditoria
+mkdir test-repo && cd test-repo
+git init && git add -A && git commit -m "baseline: known incompatibilities planted"
+
+# 2. Publique o TD (dica: o publish só aceita SKILL.md + references/ + scripts/ -
+#    um README.md na pasta aborta o publish; use uma cópia staged sem ele)
+atx custom def publish -n <td-name> --sd <td-dir> --description "..."
+
+# 3. Execute com budget de agent minutes (se estourar, o CLI imprime o comando de resume)
+atx -t --limit 60 custom def exec -n <td-name> -p ./test-repo -x -t \
+  --configuration 'additionalPlanContext=...'
+
+# 4. Audite: o agente commita como "ATX Bot" - o diff contra o baseline mostra TUDO
+git log --oneline           # baseline (você) + steps (ATX Bot)
+git diff <baseline> HEAD    # cada transformação, auditável linha a linha
+
+# 5. Valide com ferramentas EXTERNAS (nunca confie só no output do agente)
+terraform validate                            # IaC
+helm template test ./chart                    # charts
+kubectl apply --dry-run=server -f manifests/  # contra um cluster real
+```
+
+**Checklist de qualidade** (o que os benchmarks deste repo cobrem):
+
+- ✅ Casos positivos: cada incompatibilidade plantada foi detectada e transformada?
+- ✅ Controles negativos: recursos já corretos ficaram **intocados** (zero falso positivo)?
+- ✅ Casos flag-only: itens que não devem ser auto-migrados (ex: PodSecurityPolicy) foram flagados sem transformação?
+- ✅ Fontes intactas: nos TDs generate-only, o código fonte ficou byte-idêntico?
+- ✅ Report gerado: MIGRATION_REPORT.md / ADOPTION_REPORT.md completos?
+- ✅ Custo: agent minutes registrados por run ($0.035/min) - os runs deste repo ficaram entre 17 e 44 min cada
+
+> 💡 Lição dos benchmarks: um caso de teste com um tipo de recurso *fora* da tabela de mapping do TD é valioso - valida que o agente **flaga em vez de inventar** (comportamento "never guess"). Foi exatamente assim que um gap real na tabela de mapping do ACK TD foi encontrado e corrigido.
+
 
 ## Contribuindo
 
