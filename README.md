@@ -375,10 +375,10 @@ Ou crie manualmente seguindo a [especificação Agent Skills](https://agentskill
 
 | TD | Descrição | Uso |
 |----|-----------|-----|
-| [eks-version-upgrade-readiness](transforms/atx-td-eks-upgrade/) | Analisa e transforma manifests K8s, Helm charts, Terraform e CDK para compatibilidade com uma versão target do EKS. Detecta APIs deprecadas, atualiza campos, valida addons e gera migration report. | `atx custom def exec -n eks-version-upgrade-readiness` |
+| [eks-version-upgrade-readiness](transforms/atx-td-eks-upgrade/) | Analisa e transforma manifests K8s, Helm charts, Terraform e CDK para compatibilidade com uma versão target do EKS. Detecta APIs deprecadas, atualiza campos, valida addons, faz o pre-flight de [rollback readiness](transforms/atx-td-eks-upgrade/rollback-readiness.md) (compatibilidade N-1 + disruption controls) e gera migration report. | `atx custom def exec -n eks-version-upgrade-readiness` |
 | [ack-resource-adoption-from-iac](transforms/atx-td-ack-adoption/) | Gera manifests de adoção ACK (`adopt-or-create` + `deletion-policy: retain`) a partir de CloudFormation, Terraform e Pulumi, trazendo recursos AWS existentes pra gestão GitOps sem recriar nada. Modules e nested stacks viram ResourceGraphDefinitions do [kro](https://kro.run). | `atx custom def exec -n ack-resource-adoption-from-iac` |
 
-> 🚀 Ambos os TDs foram submetidos ao repositório oficial [aws-samples/aws-transform-custom-samples](https://github.com/aws-samples/aws-transform-custom-samples): [PR #72](https://github.com/aws-samples/aws-transform-custom-samples/pull/72) (EKS Upgrade Readiness) e [PR #74](https://github.com/aws-samples/aws-transform-custom-samples/pull/74) (ACK Resource Adoption).
+> 🚀 Ambos os TDs foram submetidos ao repositório oficial [aws-samples/aws-transform-custom-samples](https://github.com/aws-samples/aws-transform-custom-samples): [PR #72](https://github.com/aws-samples/aws-transform-custom-samples/pull/72) (EKS Upgrade Readiness, mergeado) e [PR #74](https://github.com/aws-samples/aws-transform-custom-samples/pull/74) (ACK Resource Adoption). O [PR #84](https://github.com/aws-samples/aws-transform-custom-samples/pull/84) acrescenta rollback readiness ao TD de EKS upgrade, depois do lançamento do [EKS Version Rollback](https://aws.amazon.com/blogs/containers/announcing-amazon-eks-rollback-for-safe-and-reliable-management-of-cluster-upgrades/).
 
 ### Relação com o k8s-healthcheck Power
 
