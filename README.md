@@ -431,6 +431,15 @@ git diff <baseline> HEAD    # cada transformação, auditável linha a linha
 terraform validate                            # IaC
 helm template test ./chart                    # charts
 kubectl apply --dry-run=server -f manifests/  # contra um cluster real
+
+# 5b. Schema validation SEM cluster, contra os DOIS lados do hop (brew install kubeconform)
+#     A versão de destino prova que o manifest é válido DEPOIS da transformação.
+#     A versão N-1 prova QUAIS mudanças são target-only - o que validador de
+#     versão única não consegue mostrar. Use -ignore-missing-schemas: CRD não
+#     tem schema upstream e sai como "skipped", não como falha.
+kubeconform -kubernetes-version 1.34.0 -summary -ignore-missing-schemas manifests/
+kubeconform -kubernetes-version 1.33.0 -summary -ignore-missing-schemas manifests/
+helm template test ./chart | kubeconform -kubernetes-version 1.34.0 -summary -
 ```
 
 **Checklist de qualidade** (o que os benchmarks deste repo cobrem):
@@ -440,9 +449,12 @@ kubectl apply --dry-run=server -f manifests/  # contra um cluster real
 - ✅ Casos flag-only: itens que não devem ser auto-migrados (ex: PodSecurityPolicy) foram flagados sem transformação?
 - ✅ Fontes intactas: nos TDs generate-only, o código fonte ficou byte-idêntico?
 - ✅ Report gerado: MIGRATION_REPORT.md / ADOPTION_REPORT.md completos?
+- ✅ Dual-version: rodou o schema check contra a versão de destino **e** contra N-1 (quando o TD afirma algo sobre compatibilidade entre versões)?
 - ✅ Custo: agent minutes registrados por run ($0.035/min) - os runs deste repo ficaram entre 17 e 44 min cada
 
 > 💡 Lição dos benchmarks: um caso de teste com um tipo de recurso *fora* da tabela de mapping do TD é valioso - valida que o agente **flaga em vez de inventar** (comportamento "never guess"). Foi exatamente assim que um gap real na tabela de mapping do ACK TD foi encontrado e corrigido.
+
+> 💡 Lição do TD de EKS Upgrade: `kubectl --dry-run` exige cluster e valida UMA versão só. Rodar `kubeconform` contra 1.34 **e** 1.33 no mesmo run foi o que transformou "essa mudança é target-only" de afirmação em fato medido - o VolumeAttributesClass valida em 1.34 e falha em 1.33 (`could not find schema`), enquanto os outros 10 recursos passam nas duas. Diferença de schema entre as duas versões é evidência; release note é só a hipótese. Bônus: o mesmo comando provou que PodSecurityPolicy não tem schema em 1.34, confirmando por outra via que flag-only é o comportamento certo.
 
 
 ## Contribuindo
