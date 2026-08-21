@@ -197,14 +197,29 @@ immediately, which is why this is not RISK-SAFETY.
 
 #### INF-Q5: Autoscaling Model — RISK-QUALITY
 
-**Look for:** `kind: ClusterAutoscaler`, `kind: MachineAutoscaler`, HPA definitions,
-`kind: VerticalPodAutoscalerController`.
+**Look for:** `kind: ClusterAutoscaler`, `kind: MachineAutoscaler`,
+`kind: VerticalPodAutoscalerController` (all `*.openshift.io`), and OpenShift-specific
+autoscaling configuration.
 
-**EKS equivalent:** Karpenter for nodes, HPA unchanged for pods, VPA installed separately.
+**Do NOT treat a plain `autoscaling/v2` HorizontalPodAutoscaler as a gap.** The HPA API is
+identical on EKS and is already the target state, so an HPA is **evidence of portability, not
+of a problem**. Read it only as context for whether node-level autoscaling has to keep up with
+pod-level scaling.
 
-**Why RISK-QUALITY:** HPA is portable as-is. Node autoscaling changes model - Karpenter
-provisions per-pod rather than scaling a fixed group - which is an improvement but changes
-capacity behaviour enough to need validation.
+**Resolution rule, explicit because this question was ambiguous and produced inconsistent
+results across runs:**
+
+| What the repository contains | Outcome |
+|---|---|
+| An OpenShift autoscaler object (`ClusterAutoscaler`, `MachineAutoscaler`, `VerticalPodAutoscalerController`) | **finding**, RISK-QUALITY |
+| Only a portable `autoscaling/v2` HPA, no OpenShift autoscaler | **evaluation**, `resolution: not-present`. Not a finding. |
+| Neither | **evaluation**, `resolution: not-present` |
+
+**EKS equivalent:** Karpenter for nodes; HPA unchanged for pods; VPA installed separately.
+
+**Why RISK-QUALITY when it does fire:** node autoscaling changes model - Karpenter provisions
+per-pod rather than scaling a fixed group. That is an improvement, but it changes capacity
+behaviour enough to need validation. The pod-level HPA needs no work at all.
 
 #### INF-Q6: CPU Manager, Topology Manager and HugePages — RISK-SAFETY ⚡
 
@@ -508,10 +523,21 @@ creation assumptions.
 
 **EKS equivalent:** `Namespace`, provisioned by whatever platform tooling the customer adopts.
 
-**Why INFO:** a Project is a Namespace with defaults attached. The conversion is trivial; the
-defaults (quota, limit range, network policy, role bindings) are the substance, and they are
-already covered by OPS-Q8, SEC-Q5 and SEC-Q7. Recorded so the self-service expectation is not
-lost silently.
+**A plain `Namespace`, or a `namespace:` field on any resource, is NOT a finding.** Namespaces
+are identical on both platforms. Only the OpenShift `Project`/`ProjectRequest` objects and the
+self-service project-creation machinery count. See the portable-construct rule in
+`01-scoring-model.md`.
+
+| What the repository contains | Outcome |
+|---|---|
+| `kind: Project`, `kind: ProjectRequest`, or a project template | **finding**, INFO |
+| Only plain `Namespace` objects or `namespace:` fields | **evaluation**, `not-present` |
+| Neither | **evaluation**, `not-present` |
+
+**Why INFO when it does fire:** a Project is a Namespace with defaults attached. The conversion
+is trivial; the defaults (quota, limit range, network policy, role bindings) are the substance,
+and they are already covered by OPS-Q8, SEC-Q5 and SEC-Q7. Recorded so the self-service
+expectation is not lost silently.
 
 ---
 

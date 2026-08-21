@@ -4,6 +4,39 @@
 
 ---
 
+## The portable-construct rule (read before evaluating anything)
+
+Many questions name a construct in their "look for" list that **exists identically on both
+platforms**: `HorizontalPodAutoscaler`, `Namespace`, `NetworkPolicy`, `Secret`, `StatefulSet`,
+`nodeSelector`, `tolerations`, `Role`/`RoleBinding`, readiness and liveness probes. They are
+listed because they carry context, not because their presence is a problem.
+
+**Finding a portable construct is not a gap.** A finding requires one of:
+
+1. an **OpenShift-specific object** (`*.openshift.io`, `k8s.ovn.org`, `k8s.cni.cncf.io`,
+   `operators.coreos.com`, `sriovnetwork.openshift.io`), or
+2. an **OpenShift-specific attribute** on a portable object (an OpenShift-only
+   `storageClassName`, a `node-role.kubernetes.io/infra` selector, an OpenShift
+   service-serving-cert annotation), or
+3. an **absence** that matters on EKS (no NetworkPolicy on a workload with a network surface,
+   no probes on a workload whose rollout behaviour changes), or
+4. a **portable object whose semantics change on EKS** (a `StatefulSet` whose EBS volume
+   becomes zonal, an RWX PVC that EBS cannot satisfy).
+
+If none of the four applies, the question resolves as an **evaluation**, not a finding.
+
+This rule exists because it was violated in practice, repeatedly and inconsistently: a plain
+`autoscaling/v2` HPA in a fully portable workload was reported as an `INF-Q5` finding, and a
+plain `Namespace` reference as an `OPS-Q9` finding - both citing the control resource, which is
+the file that proves portability. Different runs of the identical fixture resolved these
+differently, which is the signature of an ambiguous rubric rather than a model problem.
+
+**Corollary for the control case:** a repository region that is already idiomatic Kubernetes
+should produce **zero** findings. If a portable, well-formed workload attracts findings, the
+question is over-broad and the rubric is wrong, not the workload.
+
+---
+
 ## Severity model
 
 Three unified severities, with RISK split into two sub-tiers. This mirrors the ARA model so

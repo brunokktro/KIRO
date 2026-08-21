@@ -33,8 +33,14 @@ and names the offending `question_id`.
 | `phase` | integer | `1`-`4`, derived remediation phase |
 | `evidence` | object | `{file: string, lines: string|null}`. **For an ABSENCE finding, `file` is the file where the construct is MISSING - never a different file where it happens to exist.** A finding that `payments-api` has no probes cites `payments-api`'s manifest, not the compliant workload next to it. Citing the compliant file makes the report actively misleading: a reader following the evidence lands on a file that satisfies the question. Reserve `null` for a genuinely repo-wide finding with no representative path. |
 
-## The `openshift_metadata` subobject
+**Repo-wide findings MUST use `evidence: {"file": null, "lines": null}`.** `APP-Q9`
+(portability ratio) is the canonical case: its subject is the whole repository, so no file
+represents it. Citing an arbitrary file for a repo-wide finding is misleading - a reader
+follows the evidence expecting to see the problem there and lands somewhere unrelated, often
+on a compliant file. Any finding whose subject is the repository rather than a specific
+resource uses a null file.
 
+## The `openshift_metadata` subobject
 Every finding MUST also carry `openshift_metadata`, which preserves the rubric depth that the
 12 flat fields flatten away.
 

@@ -148,6 +148,86 @@ ignore it:
 
 ---
 
+## Parallel execution (measured 2026-08-21)
+
+The three targets were re-run **concurrently** to measure the speedup and to close Known Issue
+#1 (the truncated artifact bundle).
+
+| | Serial | Parallel |
+|---|---|---|
+| Wall clock, 3 targets | ~35 min | **13 min** |
+| Speedup | | **2.7x** |
+| Concurrency errors / quota | | none with 3 simultaneous `exec` |
+| Artifact bundle at `--limit 55` | | **4/4 on the two lighter targets** |
+
+**Rule of use, and it is not "parallelise everything":** parallelise the target runs of a
+definition that has **already been validated once serially**. The first run of a new definition
+goes serial, because that run is where the diagnostic information is - the first serial run of
+this Lens produced five precise defect diagnoses, and running four definitions at once would
+have produced a pile of failures with no identified layer.
+
+Parallelism buys wall clock, not money. Cost is per agent minute regardless of concurrency.
+
+For running one definition across many repositories - a real customer estate - the native
+mechanism is a **campaign**, which tracks per-repo status (`NOT_STARTED` / `TRANSFORMING` /
+`VALIDATED`) instead of requiring log inspection:
+
+```bash
+atx custom campaign create --name <c> --transformation-name <def> --repos <r1,r2,r3>
+atx custom def exec --campaign <c> --repo-name <r1> -x -t
+atx custom campaign list-repos --name <c>
+```
+
+### The systemic defect the parallel runs exposed
+
+The parallel batch failed consistently on all three targets where the serial batch had passed:
+`INF-Q5` (Autoscaling) emitted a finding citing the **control resource**, the file whose whole
+purpose is to prove portability. `OPS-Q9` (Project vs Namespace) did the same on one target.
+
+The serial runs had not passed because they were correct - they had drawn the other way on an
+**ambiguous rubric**. `INF-Q5` listed `HPA definitions` in its look-for list and then stated
+"HPA is portable as-is": the question told the agent to find a construct and then told it that
+construct is not a problem. The agent resolved the contradiction by emitting a finding, which
+is a defensible reading.
+
+This was not three coincidences. **Any question whose look-for list names a construct that
+exists identically on both platforms is a false-positive generator**, and that covers
+`HorizontalPodAutoscaler`, `Namespace`, `NetworkPolicy`, `Secret`, `StatefulSet`,
+`nodeSelector`, `Role`/`RoleBinding` and probes. Patching the two questions that happened to
+fire would have left the other seven armed.
+
+The fix is a single rule at the top of `01-scoring-model.md` - the **portable-construct rule**:
+finding a portable construct is not a gap; a finding requires an OpenShift-specific object, an
+OpenShift-specific attribute on a portable object, an absence that matters on EKS, or a
+portable object whose semantics change on EKS. Plus explicit resolution tables on `INF-Q5` and
+`OPS-Q9`. After that rule, both false positives disappeared from all three targets.
+
+**Corollary now written into the rubric:** a region of the repository that is already idiomatic
+Kubernetes must produce zero findings. If a portable, well-formed workload attracts findings,
+the question is over-broad and the rubric is wrong, not the workload.
+
+### Two defects found in the assertion script during the same batch
+
+Both produced false failures against correct runs, and both were self-inflicted:
+
+- Adding the "repo-wide findings must use `evidence: null`" rule to the contract while leaving a
+  generic "finding has no evidence file" check in the assertion script. The Lens complied with
+  the new rule and the script failed it. Two of my own checks contradicting each other, created
+  in the same edit. `APP-Q9` is now exempt from the evidence check and instead asserted to have
+  a null file.
+- The runner printed `SEM JSON` whenever the assertion **exited non-zero**, rather than when the
+  JSON was actually absent, because of an `&&`/`||` chain. A misleading diagnostic is worse than
+  none.
+
+### Remaining known gaps after the parallel batches
+
+| Gap | Assessment |
+|---|---|
+| `eks-auto-mode` missed `SEC-Q6` (Secret management) on the final batch | **The fixture plant is too weak to assert on.** `QUEUE_PASSWORD` comes from a Template `generate: expression` - a generated value, not a committed credential - so resolving it as `not-present` is defensible. Fix belongs in the fixture (plant a real committed `stringData` secret), not in the rubric. |
+| Artifact bundle still truncates on the heaviest target | The heaviest run used 57.33 agent minutes against `--limit 55` and produced 2/4 artifacts. The two lighter targets produced 4/4. **Use `--limit 70` and assert the artifact count**; a truncated run exits normally and the remaining artifacts look complete. |
+
+---
+
 ## Exit Criteria Compliance (per SKILL.md)
 
 | # | Exit criterion | standard | auto-mode | hybrid |
