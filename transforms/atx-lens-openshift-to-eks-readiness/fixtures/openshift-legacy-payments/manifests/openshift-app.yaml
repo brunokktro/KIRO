@@ -1,0 +1,115 @@
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: payments-api
+  namespace: payments-prod
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+    - name: latest
+      from:
+        kind: DockerImage
+        name: image-registry.openshift-image-registry.svc:5000/payments-prod/payments-api:latest
+      referencePolicy:
+        type: Local
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: payments-api
+  namespace: payments-prod
+spec:
+  replicas: 3
+  selector:
+    app: payments-api
+  strategy:
+    type: Rolling
+    rollingParams:
+      pre:
+        failurePolicy: Abort
+        execNewPod:
+          containerName: payments-api
+          command: ["/bin/sh", "-c", "java -jar /deployments/payments.jar --migrate-db"]
+      post:
+        failurePolicy: Ignore
+        execNewPod:
+          containerName: payments-api
+          command: ["/bin/sh", "-c", "curl -sf http://payments-api:8080/warmup"]
+  triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames: ["payments-api"]
+        from:
+          kind: ImageStreamTag
+          name: payments-api:latest
+    - type: ConfigChange
+  template:
+    metadata:
+      labels:
+        app: payments-api
+    spec:
+      serviceAccountName: payments-api
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      containers:
+        - name: payments-api
+          image: payments-api:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+              hugepages-2Mi: 512Mi
+          volumeMounts:
+            - name: spool
+              mountPath: /var/lib/payments/spool
+            - name: hugepage
+              mountPath: /hugepages
+      volumes:
+        - name: spool
+          persistentVolumeClaim:
+            claimName: payments-spool
+        - name: hugepage
+          emptyDir:
+            medium: HugePages
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-api
+  namespace: payments-prod
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: payments-api-tls
+spec:
+  selector:
+    app: payments-api
+  ports:
+    - port: 8443
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: payments-api
+  namespace: payments-prod
+  annotations:
+    haproxy.router.openshift.io/timeout: 120s
+    haproxy.router.openshift.io/balance: leastconn
+    haproxy.router.openshift.io/disable_cookies: "true"
+spec:
+  host: payments.apps.ocp-prod.example.internal
+  to:
+    kind: Service
+    name: payments-api
+  port:
+    targetPort: 8443
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect

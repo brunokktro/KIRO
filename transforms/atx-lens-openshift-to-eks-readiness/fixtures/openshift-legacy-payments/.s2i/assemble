@@ -1,0 +1,9 @@
+#!/bin/bash -e
+echo "---> Installing application source"
+cp -Rf /tmp/src/. ./
+
+echo "---> Building application from source"
+mvn -B -DskipTests package
+
+echo "---> Staging artifact"
+cp target/payments-*.jar /deployments/payments.jar
