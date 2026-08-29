@@ -46,7 +46,7 @@ from it was not considered, which is a defect.
 <per file, what changed and why. Cite line ranges. Group by construct, not by file, so a
 reviewer checking "did every Route convert" reads one section.>
 
-### <construct> — <n> occurrences
+### <construct> - <n> occurrences
 
 | File | Before | After | Risk |
 |---|---|---|---|
@@ -56,7 +56,7 @@ reviewer checking "did every Route convert" reads one section.>
 <one subsection per scaffold. Each MUST state what is missing and what decision the reader has
 to make. A scaffold presented as finished is worse than no scaffold.>
 
-### <path> — <what it covers>
+### <path> - <what it covers>
 
 **Complete:** <what is genuinely done>
 **Missing:** <the decision the reader must make>
@@ -66,7 +66,7 @@ to make. A scaffold presented as finished is worse than no scaffold.>
 
 <one entry per REPORT-ONLY construct. Ordered by risk.>
 
-### <construct> — <risk>
+### <construct> - <risk>
 
 **Found in:** `<file>:<lines>`
 **Why it was not transformed:** <the specific reason, not "not supported">
