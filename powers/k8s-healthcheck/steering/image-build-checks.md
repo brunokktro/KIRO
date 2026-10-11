@@ -8,11 +8,26 @@ Container image build best practices validation based on:
 
 **Note:** These checks are partially runtime-verifiable and partially guidance-based.
 
+Every check below carries a stable **Check ID**, its evidence commands, the exact FAIL condition and a fixed report line. The catalog of all IDs, the scoring formula and the report format live in `POWER.md`.
+
 ---
 
-## Check: Image Tags and Immutability
+## Check: IMG-01 Image Tags and Immutability
 
 **Severity:** HIGH
+
+**Check ID:** `IMG-01` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get deploy,sts,ds -n <ns> -o json | jq -r '.items[] | . as $w | .spec.template.spec.containers[] | select((.image | test("@sha256:") | not) and ((.image | test(":[^/:]+$") | not) or (.image | endswith(":latest")) or .imagePullPolicy != "Always")) | "\($w.kind)/\($w.metadata.name) container=\(.name) pullPolicy=\(.imagePullPolicy)"'
+```
+
+**FAIL when:** apply **Finding logic**: `:latest` or no tag (HIGH, every namespace counts as production unless the prompt says dev or test); a tag without digest and `imagePullPolicy` other than `Always` (MEDIUM).
+
+**Why (report line):** A mutable tag means two pods of the same Deployment can run different code.
+
+**Source:** [Images](https://kubernetes.io/docs/concepts/containers/images/)
 
 **What to check:**
 1. Containers using `:latest` tag
@@ -30,11 +45,32 @@ Container image build best practices validation based on:
 - At minimum use semantic version tags: `image: myapp:1.2.3`
 - Enable tag immutability in ECR
 
+**Fix (YAML):**
+```yaml
+containers:
+- name: <container>
+  image: <registry>/<repo>@sha256:<digest>   # or an immutable version tag with ECR tag immutability
+  imagePullPolicy: IfNotPresent
+```
+
 ---
 
-## Check: Base Image Selection
+## Check: IMG-02 Base Image Selection
 
 **Severity:** MEDIUM (advisory)
+
+**Check ID:** `IMG-02` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get deploy,sts,ds -n <ns> -o json | jq -r '.items[] | . as $w | .spec.template.spec.containers[] | (.image | split("@")[0] | split("/") | last | split(":")[0]) as $repo | select($repo | test("^(ubuntu|debian|centos|fedora|amazonlinux|rockylinux|almalinux|oraclelinux|ubi[0-9]*)$")) | "\($w.kind)/\($w.metadata.name) container=\(.name) base=\($repo)"'
+```
+
+**FAIL when:** a container runs a full OS image directly (MEDIUM). When nothing matches the check is NOT_EVALUATED, never PASS: the base layer of an application image is not visible to kubectl.
+
+**Why (report line):** Full OS images ship hundreds of packages, each one a CVE you have to patch.
+
+**Source:** [AWS Well-Architected Container Build Lens](https://docs.aws.amazon.com/wellarchitected/latest/container-build-lens/container-build-lens.html)
 
 **What to check:**
 1. Containers using full OS base images (ubuntu, centos)
@@ -52,11 +88,26 @@ Container image build best practices validation based on:
 - Pin base image version with digest
 - Consider multi-arch for Graviton
 
+**Fix:** not a manifest change: rebuild the image on a minimal base (distroless, alpine or scratch), see the IMG-03 Dockerfile.
+
 ---
 
-## Check: Multi-Stage Build Indicators
+## Check: IMG-03 Multi-Stage Build Indicators
 
 **Severity:** LOW (advisory)
+
+**Check ID:** `IMG-03` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** guidance
+
+**Evidence:**
+```bash
+aws ecr describe-images --region <region> --repository-name <repo> --image-ids imageTag=<tag> --query 'imageDetails[0].imageSizeInBytes'
+```
+
+**FAIL when:** guidance only, NOT_EVALUATED unless image size or a Dockerfile is provided; then apply **Finding logic**.
+
+**Why (report line):** Build tools left in the runtime image grow the attack surface and the pull time.
+
+**Source:** [AWS Well-Architected Container Build Lens](https://docs.aws.amazon.com/wellarchitected/latest/container-build-lens/container-build-lens.html)
 
 **What to check:**
 1. Image size (large images suggest no multi-stage build)
@@ -82,11 +133,26 @@ USER 65534
 ENTRYPOINT ["/server"]
 ```
 
+**Fix:** not a manifest change: use the multi-stage Dockerfile in the Recommendation.
+
 ---
 
-## Check: Image Scanning and Vulnerabilities
+## Check: IMG-04 Image Scanning and Vulnerabilities
 
 **Severity:** HIGH
+
+**Check ID:** `IMG-04` | **Scope level:** cluster | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get validatingwebhookconfigurations,mutatingwebhookconfigurations -o name | grep -Ei 'kyverno|gatekeeper|ratify|policy-controller|connaisseur|trivy|neuvector|kubewarden'
+```
+
+**FAIL when:** no admission webhook of a known image policy engine (MEDIUM). When one exists the check PASSes and the enforce versus audit mode is listed under Not checked.
+
+**Why (report line):** Without an admission gate, an image with a known CRITICAL CVE can reach production.
+
+**Source:** [EKS Best Practices - Image security](https://docs.aws.amazon.com/eks/latest/best-practices/image-security.html)
 
 **What to check:**
 1. ECR image scanning enabled
@@ -103,11 +169,27 @@ ENTRYPOINT ["/server"]
 - Deploy admission controller to block CRITICAL CVEs
 - Integrate scanning into CI/CD (shift-left)
 
+**Fix:** not a single manifest: install an admission policy engine (Kyverno, Gatekeeper, Ratify) in enforce mode and enable ECR enhanced scanning.
+
 ---
 
-## Check: Registry Configuration
+## Check: IMG-05 Registry Configuration
 
 **Severity:** MEDIUM
+
+**Check ID:** `IMG-05` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get deploy,sts,ds -n <ns> -o json | jq -r '.items[] | . as $w | .spec.template.spec.containers[] | (.image | split("/")) as $p | select(($p | length) == 1 or (($p[0] | test("[.:]") or . == "localhost") | not) or ($p[0] | IN("docker.io", "index.docker.io"))) | "\($w.kind)/\($w.metadata.name) container=\(.name)"'
+kubectl get pods -n <ns> -o json | jq -r '.items[] | select(any(.status.containerStatuses[]?; .state.waiting.reason == "ImagePullBackOff" or .state.waiting.reason == "ErrImagePull")) | "\(.metadata.ownerReferences[0].kind // "Pod")/\(.metadata.ownerReferences[0].name // .metadata.name)"'
+```
+
+**FAIL when:** an image comes from `docker.io` (including no registry host) (MEDIUM); a pod is in `ImagePullBackOff` or `ErrImagePull` (HIGH). The pull failure is the observable form of the "missing imagePullSecrets" row.
+
+**Why (report line):** Docker Hub rate limits and missing pull secrets stop pods from starting during a scale-out.
+
+**Source:** [Images](https://kubernetes.io/docs/concepts/containers/images/)
 
 **What to check:**
 1. Pulling from public registries (docker.io) in production
@@ -119,11 +201,36 @@ ENTRYPOINT ["/server"]
 - Using private ECR -> PASS
 - Missing imagePullSecrets for private registry -> HIGH
 
+**Fix (YAML):**
+```yaml
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+      - name: <registry-secret>   # not needed for ECR, which uses the node or pod role
+      containers:
+      - name: <container>
+        image: <private-registry>/<repo>:<version>   # or an ECR pull-through cache repository
+```
+
 ---
 
-## Check: Image Signing and Provenance
+## Check: IMG-06 Image Signing and Provenance
 
 **Severity:** LOW (advisory)
+
+**Check ID:** `IMG-06` | **Scope level:** cluster | **Applies to:** any cluster | **Evaluation:** guidance
+
+**Evidence:**
+```bash
+kubectl get validatingwebhookconfigurations,mutatingwebhookconfigurations -o name | grep -Ei 'kyverno|policy-controller|ratify|connaisseur'
+```
+
+**FAIL when:** guidance only, always NOT_EVALUATED: a policy engine webhook does not prove that a signature policy exists.
+
+**Why (report line):** Without signature verification the cluster cannot tell your image from a tampered one.
+
+**Source:** [EKS Best Practices - Image security](https://docs.aws.amazon.com/eks/latest/best-practices/image-security.html)
 
 **What to check:**
 1. Images signed with Sigstore/cosign
@@ -135,11 +242,26 @@ ENTRYPOINT ["/server"]
 - Generate and attach SBOM (syft, trivy)
 - Target SLSA Level 2+ for critical workloads
 
+**Fix:** not a manifest change: sign in CI with cosign and verify at admission.
+
 ---
 
-## Check: Layer Optimization
+## Check: IMG-07 Layer Optimization
 
 **Severity:** LOW (advisory)
+
+**Check ID:** `IMG-07` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** guidance
+
+**Evidence:**
+```bash
+docker history --no-trunc <image>
+```
+
+**FAIL when:** guidance only, always NOT_EVALUATED: layers are not visible to kubectl.
+
+**Why (report line):** Extra layers and caches slow every pull, and secrets in a layer stay readable forever.
+
+**Source:** [AWS Well-Architected Container Build Lens](https://docs.aws.amazon.com/wellarchitected/latest/container-build-lens/container-build-lens.html)
 
 **What to check:**
 1. Image layer count (excessive layers)
@@ -153,11 +275,26 @@ ENTRYPOINT ["/server"]
 - Use `.dockerignore`
 - Never store secrets in Dockerfile
 
+**Fix:** not a manifest change: see the Recommendation.
+
 ---
 
-## Check: Non-Root User
+## Check: IMG-08 Non-Root User
 
 **Severity:** HIGH
+
+**Check ID:** `IMG-08` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get deploy,sts,ds -n <ns> -o json | jq -r '.items[] | .spec.template.spec as $p | . as $w | $p.containers[] | select(((if .securityContext.runAsNonRoot == null then $p.securityContext.runAsNonRoot else .securityContext.runAsNonRoot end) != true) and (((if .securityContext.runAsUser == null then $p.securityContext.runAsUser else .securityContext.runAsUser end) // 0) == 0)) | "\($w.kind)/\($w.metadata.name) container=\(.name)"'
+```
+
+**FAIL when:** neither container nor pod sets `runAsNonRoot: true` or a `runAsUser` above 0 (HIGH); a workload the prompt names as an accepted exception (MEDIUM). Spec-based: an image `USER` directive is not visible to kubectl, so set it explicitly.
+
+**Why (report line):** A process running as root inside the container is one kernel bug away from root on the node.
+
+**Source:** [Configure a Security Context for a Pod or Container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
 
 **What to check:**
 1. Containers running as root (UID 0)

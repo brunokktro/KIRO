@@ -166,7 +166,7 @@ power-name/
 | [github-power](powers/github-power/) | Integração completa com GitHub - repos, issues, PRs, code search | `@modelcontextprotocol/server-github` |
 | [eks-power](powers/eks-power/) | Gerenciamento de clusters AWS EKS - clusters, node groups, add-ons, pod identity | `awslabs.eks-mcp-server` |
 | [kubernetes-power](powers/kubernetes-power/) | Operações Kubernetes - kubectl, Helm, pods, troubleshooting | `kubernetes MCP` |
-| [k8s-healthcheck](powers/k8s-healthcheck/) | Health check e validação de boas práticas para clusters K8s/EKS. 8 pilares, 64 checks cobrindo security, reliability, networking, cost, scalability, upgrades, configuration e container image build. | `kubernetes` + `awslabs.eks-mcp-server` |
+| [k8s-healthcheck](powers/k8s-healthcheck/) | Health check e validação de boas práticas para clusters K8s/EKS. 8 pilares, 68 checks com IDs estáveis, scorecard, report Markdown + JSON e delta before/after. | `kubernetes` + `awslabs.eks-mcp-server` |
 | [power-markitdown](powers/power-markitdown/) | Converte arquivos e URLs para Markdown (PDF, DOCX, PPTX, imagens, áudio) | `markitdown-mcp` |
 | [power-aws-diagram](powers/power-aws-diagram/) | Gera diagramas de arquitetura AWS usando Python diagrams DSL | `awslabs/diagram-mcp-server` |
 | [power-research-assistant](powers/power-research-assistant/) | Pesquisa profunda com loops iterativos plan-search-evaluate, verificação de fontes e prevenção de alucinações | `tavily` + `fetch` + `context7` + `deepwiki` |
@@ -203,7 +203,7 @@ A maioria dos Powers funciona plug-and-play sem nenhuma configuração adicional
   <img src="docs/k8s-healthcheck-preview.png" alt="k8s-healthcheck Report Preview" width="720">
 </p>
 
-> O Power **k8s-healthcheck** gera um report HTML interativo com health score, donut chart de findings, pillar cards clicáveis, tabelas filtradas por severidade e prioritized actions.
+> O Power **k8s-healthcheck v1.0.0** gera um report Markdown com check IDs estáveis, scorecard por pilar, evidência e ações priorizadas, acompanhado por JSON para calcular o delta before/after de forma determinística.
 
 ---
 
@@ -233,7 +233,7 @@ KIRO/
     ├── github-power/             # GitHub integration
     ├── eks-power/                # AWS EKS management
     ├── kubernetes-power/         # Kubernetes operations
-    ├── k8s-healthcheck/          # K8s/EKS health check & best practices (8 pillars, 64 checks)
+    ├── k8s-healthcheck/          # K8s/EKS health check & best practices (8 pillars, 68 checks)
     ├── power-markitdown/         # File-to-Markdown converter
     ├── power-aws-diagram/        # AWS architecture diagrams
     ├── power-research-assistant/ # Deep research with source verification
@@ -382,7 +382,7 @@ Ou crie manualmente seguindo a [especificação Agent Skills](https://agentskill
 
 ### Relação com o k8s-healthcheck Power
 
-- **k8s-healthcheck Power** = analisa o cluster RODANDO (runtime health, 64 checks em 8 pilares)
+- **k8s-healthcheck Power** = analisa o cluster RODANDO (runtime health, 68 checks em 8 pilares)
 - **ATX TD eks-upgrade** = transforma o CÓDIGO antes do upgrade (code readiness, API migrations)
 
 Juntos, oferecem upgrade end-to-end: código preparado + cluster validado.

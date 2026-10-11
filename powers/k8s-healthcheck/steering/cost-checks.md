@@ -5,11 +5,26 @@
 Cost optimization validation based on:
 - [EKS Best Practices - Cost Optimization](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt.html)
 
+Every check below carries a stable **Check ID**, its evidence commands, the exact FAIL condition and a fixed report line. The catalog of all IDs, the scoring formula and the report format live in `POWER.md`.
+
 ---
 
-## Check: Resource Right-Sizing
+## Check: COST-01 Resource Right-Sizing
 
 **Severity:** MEDIUM
+
+**Check ID:** `COST-01` | **Scope level:** namespace | **Applies to:** EKS only | **Evaluation:** metrics
+
+**Evidence:**
+```bash
+aws cloudwatch get-metric-statistics --region <region> --namespace ContainerInsights --metric-name pod_cpu_utilization_over_pod_limit --dimensions Name=ClusterName,Value=<cluster> Name=Namespace,Value=<ns> Name=PodName,Value=<pod> --statistics Average --period 3600 --start-time <now-7d> --end-time <now>
+```
+
+**FAIL when:** apply **Finding logic** on 7-day averages. Without Container Insights the check is NOT_EVALUATED (reason: no utilization metrics).
+
+**Why (report line):** Requests far above real usage reserve capacity you pay for and never use.
+
+**Source:** [EKS Best Practices - Compute and Autoscaling](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt-compute.html)
 
 **What to check:**
 1. Pods with CPU requests > 2x average usage over 7 days
@@ -48,11 +63,43 @@ Extract `.spec.containers[].resources.requests.cpu`
 - Review resource utilization monthly
 - Set requests based on P95 usage + 20% headroom
 
+**Fix (YAML):**
+```yaml
+# Get sizing recommendations without restarting pods
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: <app>
+  namespace: <ns>
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: <app>
+  updatePolicy:
+    updateMode: "Off"
+```
+
 ---
 
-## Check: Idle and Abandoned Resources
+## Check: COST-02 Idle and Abandoned Resources
 
 **Severity:** MEDIUM
+
+**Check ID:** `COST-02` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+jq -n --argjson pvc "$(kubectl get pvc -n <ns> -o json)" --argjson pods "$(kubectl get pods -n <ns> -o json)" -r '([$pods.items[].spec.volumes[]?.persistentVolumeClaim.claimName] | unique) as $used | $pvc.items[] | select(.metadata.name as $n | $used | index($n) | not) | "PersistentVolumeClaim/\(.metadata.name)"'
+kubectl get deploy -n <ns> -o json | jq -r '.items[] | select(.spec.replicas == 0) | "Deployment/\(.metadata.name) lastProgress=\([.status.conditions[]? | select(.type == "Progressing") | .lastUpdateTime][0])"'
+kubectl get jobs -n <ns> -o json | jq -r '.items[] | select(.status.completionTime != null and .spec.ttlSecondsAfterFinished == null and ((.metadata.ownerReferences // []) | length == 0) and ((.status.completionTime | fromdateiso8601) < (now - 604800))) | "Job/\(.metadata.name)"'
+```
+
+**FAIL when:** apply **Finding logic**. Zero-replica age = last `Progressing` condition update older than 30 days. The zero-endpoint Service row uses the NET-05 evidence.
+
+**Why (report line):** Idle volumes, jobs and deployments keep billing and clutter the cluster.
+
+**Source:** [Automatic Cleanup for Finished Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/)
 
 **What to check:**
 1. Deployments scaled to 0 for > 7 days
@@ -94,11 +141,41 @@ kubectl_get:
 - Use `kubectl get pvc` cross-referenced with pod mounts to find orphans
 - Regularly audit zero-replica deployments
 
+**Fix (YAML):**
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: <job>
+  namespace: <ns>
+spec:
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: <job>
+        image: <image>
+```
+
 ---
 
-## Check: Node Instance Type Optimization
+## Check: COST-03 Node Instance Type Optimization
 
 **Severity:** MEDIUM
+
+**Check ID:** `COST-03` | **Scope level:** cluster | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get nodes -o json | jq -r '.items[] | .metadata.labels | "\(.["kubernetes.io/arch"]) \(.["node.kubernetes.io/instance-type"] // "-")"' | sort | uniq -c
+```
+
+**FAIL when:** no `arm64` node (LOW). The CPU utilization rows need Container Insights and the Spot row needs to know which workloads tolerate interruption: without that evidence they are listed under Not checked.
+
+**Why (report line):** Graviton and right-sized instance families cut the compute bill for the same work.
+
+**Source:** [EKS Best Practices - Compute and Autoscaling](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt-compute.html)
 
 **What to check:**
 1. Nodes consistently under 40% CPU utilization
@@ -131,11 +208,49 @@ Check `node.kubernetes.io/instance-type` label.
 - No Spot instances and workloads are fault-tolerant → MEDIUM
 - No Graviton instances → LOW (cost opportunity)
 
+**Fix (YAML):**
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: default
+spec:
+  template:
+    spec:
+      requirements:
+      - key: kubernetes.io/arch
+        operator: In
+        values: ["arm64", "amd64"]
+      - key: karpenter.sh/capacity-type
+        operator: In
+        values: ["spot", "on-demand"]
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+```
+
 ---
 
-## Check: Karpenter / Cluster Autoscaler Configuration
+## Check: COST-04 Karpenter / Cluster Autoscaler Configuration
 
 **Severity:** MEDIUM
+
+**Check ID:** `COST-04` | **Scope level:** cluster | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get deploy -A -o json | jq -r '.items[] | select(.metadata.name | test("karpenter|cluster-autoscaler")) | "\(.metadata.namespace)/Deployment/\(.metadata.name) replicas=\(.spec.replicas) args=\([.spec.template.spec.containers[].args[]?] | map(select(test("scale-down-enabled"))) | join(","))"'
+kubectl get nodepools.karpenter.sh -o json 2>/dev/null | jq -r '.items[] | "NodePool/\(.metadata.name) consolidationPolicy=\(.spec.disruption.consolidationPolicy // "unset") consolidateAfter=\(.spec.disruption.consolidateAfter // "unset")"'
+kubectl get pods -A --field-selector=status.phase=Pending -o json | jq -r '.items[] | select(any(.status.conditions[]?; .reason == "Unschedulable")) | "\(.metadata.namespace)/Pod/\(.metadata.name)"'
+aws eks describe-cluster --name <cluster> --region <region> --query 'cluster.computeConfig.enabled'
+```
+
+**FAIL when:** apply **Finding logic**. EKS Auto Mode (`computeConfig.enabled: true`) counts as an autoscaler. Karpenter without consolidation = `consolidationPolicy: WhenEmpty` or `consolidateAfter: Never`.
+
+**Why (report line):** Without an autoscaler that consolidates, empty and half-empty nodes keep running.
+
+**Source:** [EKS Best Practices - Karpenter](https://docs.aws.amazon.com/eks/latest/best-practices/karpenter.html)
 
 **What to check:**
 1. Autoscaler installed and healthy
@@ -172,11 +287,37 @@ kubectl_get:
 - Use diverse instance types for better Spot availability
 - Set appropriate TTL for empty nodes
 
+**Fix (YAML):**
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: default
+spec:
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 1m
+```
+
 ---
 
-## Check: Namespace-Level Cost Allocation
+## Check: COST-05 Namespace-Level Cost Allocation
 
 **Severity:** LOW
+
+**Check ID:** `COST-05` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get namespace <ns> -o json | jq -r '.metadata.labels | keys[]'
+kubectl get resourcequotas -n <ns> -o name
+```
+
+**FAIL when:** no ResourceQuota (MEDIUM, every cluster is treated as shared unless the prompt says single-tenant); the namespace has none of the labels `team`, `owner`, `project`, `environment`, `cost-center`, `app.kubernetes.io/part-of` (LOW). The tooling row is INFO.
+
+**Why (report line):** Without allocation labels nobody can tell which team the namespace bill belongs to.
+
+**Source:** [EKS Best Practices - Cost Optimization](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt.html)
 
 **What to check:**
 1. ResourceQuotas defined per namespace
@@ -201,11 +342,37 @@ Check for cost-related labels/annotations.
 - No cost allocation labels → LOW
 - No cost visibility tooling → INFO
 
+**Fix (YAML):**
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: <ns>
+  labels:
+    team: <team>
+    environment: <env>
+    cost-center: <cost-center>
+```
+
 ---
 
-## Check: Storage Cost Optimization
+## Check: COST-06 Storage Cost Optimization
 
 **Severity:** LOW
+
+**Check ID:** `COST-06` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get pvc -n <ns> -o json | jq -r '.items[] | "PersistentVolumeClaim/\(.metadata.name) storageClass=\(.spec.storageClassName // "default") size=\(.spec.resources.requests.storage)"'
+kubectl get storageclass -o json | jq -r '.items[] | "StorageClass/\(.metadata.name) provisioner=\(.provisioner) type=\(.parameters.type // "unset")"'
+```
+
+**FAIL when:** a PVC uses a gp2 StorageClass: `ebs.csi.aws.com` with `type: gp2`, or the in-tree `kubernetes.io/aws-ebs` with `type` gp2 or unset (MEDIUM); a PVC requests more than 100Gi after converting Ti/Mi/G/T to Gi (LOW). The snapshot row is not scored.
+
+**Why (report line):** gp3 gives more baseline performance than gp2 for a lower price per GiB.
+
+**Source:** [EKS Best Practices - Storage](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt-storage.html)
 
 **What to check:**
 1. StorageClass using GP3 instead of GP2 (better price/performance)
@@ -229,11 +396,37 @@ kubectl_get:
 - PVC > 100GB without justification → LOW
 - No snapshot policy → LOW
 
+**Fix (YAML):**
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+```
+
 ---
 
-## Check: Data Transfer Costs
+## Check: COST-07 Data Transfer Costs
 
 **Severity:** MEDIUM
+
+**Check ID:** `COST-07` | **Scope level:** namespace | **Applies to:** any cluster | **Evaluation:** kubectl
+
+**Evidence:**
+```bash
+kubectl get services -n <ns> -o json | jq -r '.items[] | select(.spec.type == "LoadBalancer" and (.spec.externalTrafficPolicy // "Cluster") == "Cluster" and ((.metadata.annotations // {})["service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"] // "") != "ip") | "Service/\(.metadata.name)"'
+```
+
+**FAIL when:** a `LoadBalancer` Service keeps `externalTrafficPolicy: Cluster` and does not use NLB IP targets (LOW). The VPC endpoint, NAT and inter-region rows need VPC flow data and are listed under Not checked.
+
+**Why (report line):** externalTrafficPolicy Cluster adds a node hop that can cross AZs and bill data transfer.
+
+**Source:** [EKS Best Practices - Cost Optimization - Networking](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt-networking.html)
 
 **What to check:**
 1. Cross-AZ traffic patterns (pods communicating across AZs)
@@ -263,11 +456,39 @@ Check AZ labels vs pod placement patterns.
 - Deploy VPC endpoints for ECR, S3, CloudWatch, STS
 - Consider `externalTrafficPolicy: Local` where applicable
 
+**Fix (YAML):**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: <svc>
+  namespace: <ns>
+  annotations:
+    service.kubernetes.io/topology-mode: Auto
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+```
+
 ---
 
-## Check: EKS Extended Support Pricing Impact
+## Check: COST-08 EKS Extended Support Pricing Impact
 
 **Severity:** HIGH (if cluster is in Extended Support)
+
+**Check ID:** `COST-08` | **Scope level:** cluster | **Applies to:** EKS only | **Evaluation:** aws
+
+**Evidence:**
+```bash
+aws eks describe-cluster --name <cluster> --region <region> --query 'cluster.[version, upgradePolicy.supportType]' --output text
+aws eks describe-cluster-versions --region <region> --cluster-versions <version> --query 'clusterVersions[0].[versionStatus, endOfStandardSupportDate, endOfExtendedSupportDate]' --output text
+```
+
+**FAIL when:** `versionStatus` is `EXTENDED_SUPPORT` (HIGH); `STANDARD_SUPPORT` with `endOfStandardSupportDate` within 90 days of the run (MEDIUM).
+
+**Why (report line):** Extended Support adds a per-hour control plane premium on top of the standard price.
+
+**Source:** [EKS Extended Support](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions-extended.html)
 
 **What to check:**
 1. Whether the cluster is in [Standard Support](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions-standard.html) or [Extended Support](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions-extended.html)
@@ -291,3 +512,5 @@ Check AZ labels vs pod placement patterns.
 - Cross-reference with `upgrades-checks.md` → "EKS Version Support Lifecycle" for upgrade timing
 
 > **Note:** Extended Support pricing can change. ALWAYS confirm the current control-plane rate via the EKS pricing page or AWS Pricing Calculator at the time of the assessment - do not rely on a static figure embedded in this document.
+
+**Fix:** not a manifest change: upgrade the control plane one minor at a time (`aws eks update-cluster-version`), or document the business case for staying.
